@@ -1,0 +1,122 @@
+clear; close all; more off;
+
+% cd 'C:\Users\Delaney\Documents\Research!';
+
+% for mo = 1:6
+% 
+%     for d = 1:eomday(2016,mo)
+% 
+%         fname = ['seaice_conc_daily_nh_f17_2016' sprintf('%02d',mo) sprintf('%02d',d) '_v03r01.nc'];
+% 
+%         ncdisp(fname);
+all_data = []
+months = ['01','02','03','04','05','06','07','08','09', '10', '11', '12'];
+years = [ '1990', '1991', '1992']%, '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017'];
+% '1980', '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', '1989'
+change_years = ['1992','1996','2008']
+f_nums = ['08','11','13','17']
+
+counter = 1;
+for year_indx = 1:4:length(years)
+    year_num = strcat(years(year_indx), years(year_indx+1), years(year_indx+2), years(year_indx+3))
+    year_to_change = strcat(change_years(counter),change_years(counter+1),change_years(counter+2),change_years(counter+3))
+    if year_num == year_to_change
+        counter = counter + 2
+    end
+    
+    f_num = strcat(f_nums(counter),f_nums(counter+1)) 
+    
+    for idx = 1:2:length(months)
+        month_num = strcat(months(idx),months(idx+1));
+
+        fname = strcat('data/seaice_conc_monthly_nh_f',f_num,'_', year_num, month_num, '_v03r01.nc')
+
+        %fname = 'seaice_conc_daily_nh_f17_20170101_v03r01.nc';
+        %ncdisp(fname);
+
+        lat = ncread(fname,'latitude');
+        lon = ncread(fname,'longitude');
+
+        psi = ncread(fname,'seaice_conc_monthly_cdr');
+        psi(psi<0) = NaN;
+
+        months_JSON =  savejson('psijson',psi);
+
+        all_data = [all_data, months_JSON];
+    end  
+end
+
+  
+%myjson = savejson('psijson',psi);
+fid = fopen('psiMonthjson.json', 'w');
+if fid == -1, error('Cannot create JSON file'); end
+fwrite(fid, all_data, 'char');
+fclose(fid);
+% Saving to CSV 
+%csvwrite('latdata.csv',lat)
+%csvwrite('londata.csv',lon)
+%csvwrite('psidata.csv',psi)
+%csvwrite('rhodata.csv',rho)
+
+
+% close all; subplot(1,2,1); imagesc(psi); subplot(1,2,2); imagesc(smooth_psi);
+rho = 4*del2(smooth_psi,h);
+%rho = 4*del2(psi,h);
+%[FX,FY] = gradient(rho,h,h);
+%quiver(lat,lon,FX,FY)
+
+% the big map
+figure;
+subplot(1,2,1);
+%ax = axesm('mapprojection','stereo','origin',[90 rotate2lon 0],'flatlimit',[-inf 90-end_lat]);
+surfm(lat,lon,psi);
+tightmap;
+% colorbar;
+% cmap = flipud(othercolor('PuBu9',30));
+% colormap(gca,cmap);
+% geoshow('landareas.shp', 'FaceColor', [0.5 0.5 0.5]);
+% print('big_map','-depsc')
+
+% zoom in
+% figure;
+% subplot(1,2,1);
+% ax = axesm('mapprojection','stereo','origin',[80 rotate2lon 0],'flatlimit',[-inf 90-80]);
+% surfm(lat,lon,psi);
+% tightmap;
+pos = get(gca,'position');
+pos(1) = pos(1) - 0.08;
+set(gca,'position',pos);
+cb = colorbar;
+pos = get(cb,'position');
+pos(3) = pos(3)*0.3;
+pos(1) = pos(1) + 0.12;
+set(cb,'position',pos);
+set(cb,'fontsize',16);
+% cmap = flipud(othercolor('PuBu9',30));
+colormap(gca,parula);
+geoshow('landareas.shp', 'FaceColor', [0.5 0.5 0.5]);
+title('$\psi$','interpreter','latex','fontsize',18);
+
+subplot(1,2,2);
+% ax = axesm('mapprojection','stereo','origin',[80 rotate2lon 0],'flatlimit',[-inf 90-80]);
+%ax = axesm('mapprojection','stereo','origin',[90 rotate2lon 0],'flatlimit',[-inf 90-end_lat]);
+surfm(lat,lon,-rho);
+tightmap;
+pos = get(gca,'position');
+pos(1) = pos(1) - 0.08;
+set(gca,'position',pos);
+cb = colorbar;
+pos = get(cb,'position');
+pos(3) = pos(3)*0.3;
+pos(1) = pos(1) + 0.12;
+set(cb,'position',pos);
+set(cb,'fontsize',16);
+load('my_bwr.mat');
+colormap(gca,my_bwr);
+geoshow('landareas.shp', 'FaceColor', [0.5 0.5 0.5]);
+caxis([-0.3e-3 0.3e-3]);
+title('$\rho$','interpreter','latex','fontsize',18);
+print('zoom_in','-depsc')
+
+%     end
+% end
