@@ -17,6 +17,11 @@ change_years = ['1992','1996','2008']
 f_nums = ['08','11','13','17']
 
 counter = 1;
+data_counter = 1;
+all_year = [];
+d=zeros(304,448,37);
+
+
 for year_indx = 1:4:length(years)
     year_num = strcat(years(year_indx), years(year_indx+1), years(year_indx+2), years(year_indx+3))
     year_to_change = strcat(change_years(counter),change_years(counter+1),change_years(counter+2),change_years(counter+3))
@@ -39,14 +44,53 @@ for year_indx = 1:4:length(years)
 
         psi = ncread(fname,'seaice_conc_monthly_cdr');
         psi(psi<0) = NaN;
+        
+        d(:,:,data_counter) = psi;
 
         months_JSON =  savejson('psijson',psi);
 
-        all_data = [all_data, months_JSON];
+        %all_data = [all_data, months_JSON];
+        data_counter = data_counter + 1
     end  
 end
 
-  
+%%
+[max_rows,max_cols,max_depth] = size(d);
+psi_localized = [];
+for row = 1:max_rows
+    current_lat = lat(row,1);
+    for col = 1:max_cols
+        current_long = lon(1,col);
+        current_array = zeros(1,data_counter);
+        for data_point = 1:data_counter 
+            current_array(data_point) = d(row,col,data_point);
+        end
+        lat_lon_name = strcat('l',num2str(current_lat),'x', num2str(current_long));
+        lat_lon_name = strrep(lat_lon_name,'.','_');
+        lat_lon_name = strrep(lat_lon_name,'-','neg');
+
+        structure.(lat_lon_name)= current_array;
+    end
+end
+
+
+
+
+%% Process into LatLon Struct 
+
+latlonstruct =  savejson('psijson',structure);
+
+%% Write cursed latlon struct 
+fid = fopen('latlongtester.json', 'w');
+if fid == -1, error('Cannot create JSON file'); end
+fwrite(fid, latlonstruct, 'char');
+fclose(fid);
+
+%% 
+
+data = structure.('l37_5046xneg139_2845')
+plot(data)
+%%
 %myjson = savejson('psijson',psi);
 fid = fopen('psiMonthjson.json', 'w');
 if fid == -1, error('Cannot create JSON file'); end
