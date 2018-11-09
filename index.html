@@ -222,7 +222,7 @@ async function icemap() {
 
 
     // Load in GeoJSON data
-    let world = await d3.json("data/world.json");
+    let world = await d3.json("data/clipped-simplified.json");
     // Bind data and create one path per GeoJSON feature
         let geojson = topojson.feature(world, world.objects.countries);
     svg.selectAll("path")
@@ -233,33 +233,56 @@ async function icemap() {
         .attr("d", d => path(d.geometry));
 
     let zippeddata = (await d3.csv("data/zipped.csv"))
-        .map(d => ({lat: +d.lat, lon: +d.lon, psi: +d.psi}))
-        .filter(d => d.psi !== 0);
+        .map(d => ({lat: +d.lat, lon: +d.lon, psi: +d.psi}));
+        // .filter(d => d.psi !== 0);
 
-    let scale = d3.scaleSequential(d3.interpolateBlues)
-        .domain(d3.extent(zippeddata.map(d => d.psi)));
+    let months = (await d3.json("months.json"));
 
+    months = months
+        .map(month => month.psijson.flat()
+            .map((d, i) => (
+                {lat: zippeddata[i].lat, lon: zippeddata[i].lon, psi: d}
+            ))
+            .filter(d => !isNaN(d.psi) && d.psi !== 0) // RESUME: why not just call psijson.flat() and then pull the lat long during render. e.g.: (d, i) => zipped[i]
+        );
 
-    // render the ice over the map
-    svg.selectAll("circle.gridsquare")
-        .data(zippeddata)
-        .enter()
-        .append("circle")
-        .attr("class", "gridsquare")
-        .attr("cx", function (d) {
-            return projection([d.lon, d.lat])[0];
-        })
-        .attr("cy", function (d) {
-            return projection([d.lon, d.lat])[1];
-        })
-        .attr("r", 2)
-        .attr("fill", d => scale(d.psi));
+    window.render = m => {
+        console.log("beginning render");
+        let scale = d3.scaleSequential(d3.interpolateBlues)
+            .domain(d3.extent(months[m].map(d => d.psi)));
+
+        // render the ice over the map
+        let circles = svg.selectAll("circle.gridsquare")
+            .data(months[m]);
+        circles.exit().remove();
+        circles
+            .enter()
+            .append("circle")
+            .attr("class", "gridsquare")
+            .merge(circles)
+            .attr("cx", function (d) {
+                return projection([d.lon, d.lat])[0];
+            })
+            .attr("cy", function (d) {
+                return projection([d.lon, d.lat])[1];
+            })
+            .attr("r", 2)
+            .attr("fill", d => scale(d.psi));
+        console.log("ending render");
+    };
+
+    let i = 0;
+    setInterval(() => {
+        i += 1;
+        if (i > 11) {
+            i = 0;
+        }
+        window.render(i);
+    }, 3000);
 
 };
 icemap();
 */
-</script>
-
 </script>
 </body>
 </html>
