@@ -59,7 +59,7 @@ async function icemap() {
 
 
     // Load in GeoJSON data
-    let world = await d3.json("data/world.json");
+    let world = await d3.json("data/clipped-simplified.json");
     // Bind data and create one path per GeoJSON feature
         let geojson = topojson.feature(world, world.objects.countries);
     svg.selectAll("path")
