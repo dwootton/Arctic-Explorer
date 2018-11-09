@@ -25,6 +25,8 @@
     <main>
         <section id="map">
             <svg width="700" height="600"></svg>
+
+            <input type="range" id="yearPicker" style="width: 500px"/>
         </section>
 
         <section id="aggregate"></section>
@@ -83,6 +85,12 @@ async function icemap() {
             .filter(d => !isNaN(d.psi) && d.psi !== 0) // RESUME: why not just call psijson.flat() and then pull the lat long during render. e.g.: (d, i) => zipped[i]
         );
 
+    d3.select("#yearPicker")
+        .attr("min", 0)
+        .attr("max", months.length - 1)
+        .on("change", function () { window.render(this.value) })
+        .attr("value", 0);
+
     window.render = m => {
         console.log("beginning render");
         let scale = d3.scaleSequential(d3.interpolateBlues)
@@ -108,15 +116,7 @@ async function icemap() {
         console.log("ending render");
     };
 
-    let i = 0;
-    setInterval(() => {
-        i += 1;
-        if (i > 11) {
-            i = 0;
-        }
-        window.render(i);
-    }, 3000);
-
+    window.render(0);
 };
 icemap();
 </script>
