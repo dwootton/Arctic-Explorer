@@ -55,8 +55,10 @@ for year_indx = 1:4:length(years)
 end
 
 %%
+clear structure;
 [max_rows,max_cols,max_depth] = size(d);
 psi_localized = [];
+
 for row = 1:max_rows
     current_lat = lat(row,1);
     for col = 1:max_cols
@@ -64,7 +66,13 @@ for row = 1:max_rows
         current_array = zeros(1,data_counter);
         for data_point = 1:data_counter 
             current_array(data_point) = d(row,col,data_point);
+
         end
+        if(~any(current_array))
+            continue;
+        end
+        
+            
         lat_lon_name = strcat('l',num2str(current_lat),'x', num2str(current_long));
         lat_lon_name = strrep(lat_lon_name,'.','_');
         lat_lon_name = strrep(lat_lon_name,'-','neg');
@@ -74,20 +82,17 @@ for row = 1:max_rows
 end
 
 
-
-
 %% Process into LatLon Struct 
 
 latlonstruct =  savejson('psijson',structure);
 
 %% Write cursed latlon struct 
-fid = fopen('latlongtester.json', 'w');
+fid = fopen('latlongtester2.json', 'w');
 if fid == -1, error('Cannot create JSON file'); end
 fwrite(fid, latlonstruct, 'char');
 fclose(fid);
 
 %% 
-
 data = structure.('l37_5046xneg139_2845')
 plot(data)
 %%
