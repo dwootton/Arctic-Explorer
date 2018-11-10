@@ -167,10 +167,7 @@ icemap();
 
         let chart = svg.append("g").attr("transform","translate(" +margin.left+"," + margin.top+")")
 
-        let mydata = await d3.json("data/latlongtester2.json", function(data) {
-            console.log("Here!!")
-            console.log(data);
-        });
+        let mydata = await d3.json("data/latlongtester2.json", function(data) {});
 
         
         let startDate = new Date(2004,0); //0 for the month as javascript is off by 1
