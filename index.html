@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Arctic Explorer - Dylan Wootton and Ethan Ransom</title>
-    <!-- <link rel="stylesheet" href="styles.css"/> -->
+    <!-- <link rel="stylesheet" href="styles/styles.css"/> -->
     <script src="https://d3js.org/d3.v5.js"></script>
     <script src="https://d3js.org/d3-geo-projection.v2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.js"></script>
@@ -112,7 +112,7 @@ async function icemap() {
         .map(d => ({lat: +d.lat, lon: +d.lon, psi: +d.psi}));
         // .filter(d => d.psi !== 0);
 
-    let months = (await d3.json("months.json"));
+    let months = (await d3.json("data/months.json"));
 
     months = months
         .map(month => month.psijson.flat()
@@ -167,7 +167,7 @@ icemap();
 
         let chart = svg.append("g").attr("transform","translate(" +margin.left+"," + margin.top+")")
 
-        let mydata = await d3.json("/smallData/latlongtester2.json", function(data) {
+        let mydata = await d3.json("data/latlongtester2.json", function(data) {
             console.log("Here!!")
             console.log(data);
         });
