@@ -66,6 +66,8 @@ div.tooltip {
 
         <section id="aggregate"></section>
 
+	<section id="heatmap"><table></table></section>
+
     </main>
     <section id="chart">
             <svg width="800" height ="400"></svg>
@@ -73,7 +75,7 @@ div.tooltip {
 
 </div>
 
-
+<script src="heatmap.js"></script>
 <script>
 
 async function icemap() {
@@ -163,16 +165,20 @@ icemap();
 </script>
 
 <script> // The Time Series View of a given point
-    async function iceChart() {
+    async function loaddata() {
+        let data = await d3.json("data/latlongtester2.json", function(data) {});
+        iceChart(data);
+        heatmap(data);
+    }
+    loaddata();
+
+    function iceChart(mydata) {
         let svg = d3.select('#chart svg');
         let width = parseInt(svg.attr("width"));
         let height = parseInt(svg.attr("height"));
         let margin = {top: 20, right: 30, bottom: 100, left: 50};
 
         let chart = svg.append("g").attr("transform","translate(" +margin.left+"," + margin.top+")")
-
-        let mydata = await d3.json("data/latlongtester2.json", function(data) {});
-
         
         let startDate = new Date(2004,0); //0 for the month as javascript is off by 1
 
@@ -186,8 +192,6 @@ icemap();
             .style("font-size", "16px") 
             .text("Sea Ice Concentration of Point Location: 37.5046 x -139.2845");
         }
-
-        iceChart() ;
 
     function drawChart(data, chart){
         let svg = d3.select('#chart svg');
