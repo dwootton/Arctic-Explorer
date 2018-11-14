@@ -29,7 +29,7 @@
     stroke: #fff;
 }
 .selected {
-    fill: #f00;
+    fill: #003366;
 }
 text {
     font-family:"arial";
@@ -212,10 +212,10 @@ icemap();
 
         let data = d3.json("data/totalConcentration.json")
             .then(function(mydata) {
-                let startDate = new Date(2004,0);
+                let startDate = new Date(1990,0);
                 let otherData = mydata.psijson;
 
-                let myQuery = [new Date(2005,0),new Date(2005,1), new Date(2005,2), new Date(2005,3), new Date(2005,4), new Date(2005,5), new Date(2005,6), new Date(2005,8), new Date(2005,9), new Date(2005,10), new Date(2005,11)]; 
+                let myQuery = [new Date(1990,0),new Date(1990,1), new Date(1990,2), new Date(1990,3), new Date(1990,4), new Date(1990,5), new Date(1990,6), new Date(1990,8), new Date(1990,9), new Date(1990,10), new Date(1990,11)]; 
 
                 let plottingData = generatePlottingData(otherData, startDate);
                 

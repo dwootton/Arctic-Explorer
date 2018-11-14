@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Arctic Explorer - Dylan Wootton and Ethan Ransom</title>
+    <!-- <link rel="stylesheet" href="styles/styles.css"/> -->
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v2.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.9.0/d3-legend.js"></script>
+    <!-- <link href="https://fonts.googleapis.com/css?family=Arvo" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> -->
+</head>
+<style type="text/css">
+/* 13. Basic Styling with CSS */
+
+/* Style the lines by removing the fill and applying a stroke */
+.line {
+    fill: none;
+    stroke: #add8e6;
+    stroke-width: 3;
+}
+
+/* Style the dots by assigning a fill and stroke */
+.dot {
+    fill: #add8e6;
+    stroke: #fff;
+}
+text {
+    font-family:"arial";
+}
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 60px;
+  height: 90px;
+  padding: 2px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+#chart {
+    margin: 20px;
+    padding: 5px;
+}
+</style>
+<body>
+
+<div id="container">
+    <header>
+        <h1>Arctic Explorer</h1>
+        <p class="info">Ethan Ransom and Dylan Wootton</p>
+    </header>
+
+    <main>
+        <section id="map">
+            <svg width="700" height="600"></svg>
+
+           
+        </section>
+         <input type="range" id="yearPicker" style="width: 500px"/>
+
+        <section id="aggregate"></section>
+
+    </main>
+    <section id="chart">
+            <svg width="800" height ="400"></svg>
+    </section>
+
+</div>
+
+
+<script>
+
+async function icemap() {
+    let svg = d3.select("#map svg");
+    let width = parseInt(svg.attr("width"));
+    let height = parseInt(svg.attr("height"));
+
+    let projection = d3.geoGringortenQuincuncial()
+        .translate([width / 2, height / 2])
+        .scale([700]);
+
+    let path = d3.geoPath()
+        .projection(projection);
+
+	svg
+        .append("path")
+        .datum(d3.geoGraticule())
+        .attr("class", "graticule") // styles provided in css file
+        .attr("d", path)
+        .attr("fill", "none")
+        .attr("stroke", "grey");	
+
+
+    // Load in GeoJSON data
+    let world = await d3.json("data/clipped-simplified.json");
+    // Bind data and create one path per GeoJSON feature
+        let geojson = topojson.feature(world, world.objects.countries);
+    svg.selectAll("path")
+        .data(geojson.features)
+        .enter()
+        .append("path")
+        // here we use the familiar d attribute again to define the path
+        .attr("d", d => path(d.geometry));
+
+    let zippeddata = (await d3.csv("data/zipped.csv"))
+        .map(d => ({lat: +d.lat, lon: +d.lon, psi: +d.psi}));
+        // .filter(d => d.psi !== 0);
+
+    let months = (await d3.json("data/months.json"));
+
+    months = months
+        .map(month => month.psijson.flat()
+            .map((d, i) => (
+                {lat: zippeddata[i].lat, lon: zippeddata[i].lon, psi: d}
+            ))
+            .filter(d => !isNaN(d.psi) && d.psi !== 0) // RESUME: why not just call psijson.flat() and then pull the lat long during render. e.g.: (d, i) => zipped[i]
+        );
+
+    d3.select("#yearPicker")
+        .attr("min", 0)
+        .attr("max", months.length - 1)
+        .on("change", function () { window.render(this.value) })
+        .attr("value", 0);
+
+    window.render = m => {
+        console.log("beginning render");
+        let scale = d3.scaleSequential(d3.interpolateBlues)
+            .domain(d3.extent(months[m].map(d => d.psi)));
+
+        // render the ice over the map
+        let rects = svg.selectAll("circle.gridsquare")
+            .data(months[m]);
+        rects.exit().remove();
+        rects
+            .enter()
+            .append("rect")
+            .attr("class", "gridsquare")
+            .merge(rects)
+            .attr("x", function (d) {
+                return projection([d.lon, d.lat])[0];
+            })
+            .attr("y", function (d) {
+                return projection([d.lon, d.lat])[1];
+            })
+            .attr("width", 2)
+            .attr("height", 2)
+            .attr("fill", d => scale(d.psi));
+        console.log("ending render");
+    };
+
+    window.render(0);
+};
+icemap();
+</script>
+
+<script> // The Time Series View of a given point
+    async function iceChart() {
+        let svg = d3.select('#chart svg');
+        let width = parseInt(svg.attr("width"));
+        let height = parseInt(svg.attr("height"));
+        let margin = {top: 20, right: 30, bottom: 100, left: 50};
+
+        let chart = svg.append("g").attr("transform","translate(" +margin.left+"," + margin.top+")")
+
+        let mydata = await d3.json("data/latlongtester2.json", function(data) {});
+
+        
+        let startDate = new Date(2004,0); //0 for the month as javascript is off by 1
+
+        let  plottingData = generatePlottingData(mydata.psijson.l37_5046xneg139_2845,startDate)
+        plottingData = plottingData.slice(0,12);
+        drawChart(plottingData, chart);
+        chart.append("text")
+            .attr("x", (width + margin.left - margin.right) / 2)          
+            .attr("y", 0 - (margin.top / 4))
+            .attr("text-anchor", "middle")  
+            .style("font-size", "16px") 
+            .text("Sea Ice Concentration of Point Location: 37.5046 x -139.2845");
+        }
+
+        iceChart() ;
+
+    function drawChart(data, chart){
+        let svg = d3.select('#chart svg');
+        let width = parseInt(svg.attr("width"));
+        let height = parseInt(svg.attr("height"));
+        let margin = {top: 20, right: 30, bottom: 100, left: 50};
+        let drawDuration = 1000;
+
+        let concentrationScale = d3.scaleLinear()
+            .domain([0, 1])
+            .range([height-margin.bottom, margin.top]);
+            /*
+        let iScale = d3.scaleLinear()
+            .domain([0, data.length])
+            .range([0, width - margin.right]);
+*/
+        let timeScale = d3.scaleTime()
+          .domain(d3.extent(data, function(d) { 
+            return d.date; 
+          }))
+          .range([0, width-margin.right-margin.left]); //minus both as you have the scale from the begining
+
+
+        let chartData = chart.data(data);
+
+        chartData.exit().remove();
+        //Append Div
+        let div = d3.select("body").append("div")   
+            .attr("class", "tooltip")               
+            .style("opacity", 0);
+
+        let lineGenerator = d3.line()
+            .x((d, i) => timeScale(d.date))
+            .y((d) => concentrationScale(d.data))
+            .curve(d3.curveMonotoneX);
+
+        console.log(data[0]);
+
+        
+        chart.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + (height-margin.bottom) + ")")
+            .call(d3.axisBottom(timeScale)); // Create an axis component with d3.axisBottom
+
+        chart.append("g")
+            .attr("class", "y axis")
+            .call(d3.axisLeft(concentrationScale)); // Create an axis component with d3.axisLeft
+
+        let path = chart.append("path")
+            .datum(data)
+            .attr("class", "line")
+            .attr("d",lineGenerator);
+
+        // Add the circles and draw animation
+        chart.append('g')
+            .selectAll(".dot")
+            .data(data)
+          .enter().append("rect") // Uses the enter().append() method
+            .attr("class", "grid") // Assign a class for styling
+            .attr("x", function(d, i) { return timeScale(d.date) })
+            .attr("y", function(d) { return concentrationScale(d.data) });
+            //.attr("r", 0);
+
+
+        let circleDelay = (1.0*drawDuration)/data.length;
+        
+        let monthNames = ["Jan", "Feb", "Mar", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+        d3.selectAll("rect")
+            .transition()
+            .delay(function(d,i){return i*circleDelay})
+            .duration(100) //function(d,i){return 3000})
+            .attr("height", 8)
+            .attr("width", 8);
+
+        let toolTipAppearDuration = 200;
+        let toolTipDisappearDuration = 400;
+
+        d3.selectAll("rect")
+            .on("mouseover", function(d) {
+               div.transition()
+                 .duration(toolTipAppearDuration)
+                 .style("opacity", .7);
+               div.html(monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
+                 .style("top", d3.event.pageY -110 + "px")
+                 .style("left", d3.event.pageX -30 + "px");
+               })
+             .on("mouseout", function(d) {
+               div.transition()
+                 .duration(toolTipDisappearDuration)
+                 .style("opacity", 0);
+               });
+
+        // Adds drawing line transition 
+        let totalLength = path.node().getTotalLength();
+        console.log('total length: ',totalLength)
+        // Set Properties of Dash Array and Dash Offset and initiate Transition
+        path
+            .attr("stroke-dasharray", totalLength + " " + totalLength)
+            .attr("stroke-dashoffset", totalLength)
+          .transition() // Call Transition Method
+            .delay(100)
+            .duration(drawDuration) // Set Duration timing (ms)
+            .ease(d3.easeLinear) // Set Easing option
+            .attr("stroke-dashoffset", 0);
+
+        
+
+        // Adding Labels 
+        // Add Y Label
+        chart.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left)
+            .attr("x",0 - ((height-margin.bottom)/ 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Sea Ice Concentration");
+
+        // Add X Label
+        chart.append("text")
+            .attr("y", height-(margin.bottom+margin.top)/1.5)
+            .attr("x", (width-margin.right)/2)
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Date");
+    }
+
+    function generatePlottingData(data,startDate){
+
+        let returnData = [];
+        let currentDate = startDate;
+
+        for(let i = 0; i < data.length; i++){
+            returnData.push({
+                'data': data[i],
+                'date': new Date(currentDate)}
+            );
+
+            currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+
+        return returnData;
+    }
+
+</script> 
+</body>
+</html>
+

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v2.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.9.0/d3-legend.js"></script>
+</head>
+<body>
+
+</body>
+</html>
+
+<script>
+function loadQuery(){
+
+    function filterData(query, allData) {
+        let returnData = [];
+        let counter = 0;
+        console.log("inside filter data",allData);
+        for(let i = 0; i < allData.length; i++){
+            
+            if(query[counter] && allData[i].date.getMonth() == query[counter].getMonth() &&
+               allData[i].date.getFullYear() == query[counter].getFullYear()){
+                returnData.push(allData[i]);
+                counter += 1;
+            }
+        }
+        return returnData;
+    }
+
+    function generatePlottingData(data,startDate){
+        console.log(data);
+        let returnData = [];
+        let currentDate = startDate;
+
+        for(let i = 0; i < data.length; i++){
+            returnData.push({
+                'data': data[i],
+                'date': new Date(currentDate)}
+            );
+
+            currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+
+        return returnData;
+    }
+    // WORK HERE
+    //console.log('first here');
+    let data = d3.json("data/totalConcentration.json")
+        .then(function(mydata) {
+        let startDate = new Date(2004,0);
+        let otherData = mydata.psijson;
+
+        let myQuery = [new Date(2005,0),new Date(2005,1), new Date(2005,2), new Date(2005,3), new Date(2005,4), new Date(2005,5), new Date(2005,6), new Date(2005,7), new Date(2005,8), new Date(2005,9), new Date(2005,10), new Date(2005,11)]; 
+        let myData = generatePlottingData(otherData, startDate);
+        
+        myData = filterData(myQuery,myData);
+        console.log(myData);
+    });
+
+    
+}
+
+loadQuery();
+
+</script>
