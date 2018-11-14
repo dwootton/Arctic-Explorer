@@ -10,6 +10,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.9.0/d3-legend.js"></script>
+      <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script> 
+<!--- Bootstrap --->
+      <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
     <!-- <link href="https://fonts.googleapis.com/css?family=Arvo" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> -->
 </head>
@@ -53,7 +64,7 @@ div.tooltip {
 </style>
 <body>
 
-<div id="container">
+<div id="container" class="container">
     <header>
         <h1>Arctic Explorer</h1>
         <p class="info">Ethan Ransom and Dylan Wootton</p>
@@ -61,7 +72,7 @@ div.tooltip {
 
     <main>
         <section id="map">
-            <svg width="700" height="600"></svg>
+            <svg width="800" height="650"></svg>
 
            
         </section>
@@ -78,6 +89,8 @@ div.tooltip {
 
 
 <script>
+
+
 
 async function icemap() {
     let svg = d3.select("#map svg");
@@ -98,7 +111,7 @@ async function icemap() {
         .attr("d", path)
         .attr("fill", "none")
         .attr("stroke", "grey");	
-
+    
 
     // Load in GeoJSON data
     let world = await d3.json("data/clipped-simplified.json");
@@ -110,7 +123,7 @@ async function icemap() {
         .append("path")
         // here we use the familiar d attribute again to define the path
         .attr("d", d => path(d.geometry))
-	.attr("fill", "#964B00");
+	.attr("fill", "#D2B48C");
 
     let zippeddata = (await d3.csv("data/zipped.csv"))
         .map(d => ({lat: +d.lat, lon: +d.lon, psi: +d.psi}));
@@ -141,23 +154,27 @@ async function icemap() {
 	    svg.style("background-color", scale(0));
 
         // render the ice over the map
-        let circles = svg.selectAll("circle.gridsquare")
+        let rects = svg.selectAll("rect.gridsquare")
             .data(months[m]);
-        circles.exit().remove();
-        circles
+
+        rects.exit().remove();
+
+        rects
             .enter()
-            .append("circle")
+            .append("rect")
             .attr("class", "gridsquare")
-            .merge(circles)
-            .attr("cx", function (d) {
+            .merge(rects)
+            .attr("x", function (d) {
                 return projection([d.lon, d.lat])[0];
             })
-            .attr("cy", function (d) {
+            .attr("y", function (d) {
                 return projection([d.lon, d.lat])[1];
             })
-            .attr("r", 2)
+            .attr("height", 4)
+            .attr("width",4)
             .attr("fill", d => scale(d.psi));
         console.log("ending render");
+
     };
 
     window.render(0);
