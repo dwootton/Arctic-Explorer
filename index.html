@@ -106,7 +106,8 @@ async function icemap() {
         .enter()
         .append("path")
         // here we use the familiar d attribute again to define the path
-        .attr("d", d => path(d.geometry));
+        .attr("d", d => path(d.geometry))
+	.attr("fill", "#964B00");
 
     let zippeddata = (await d3.csv("data/zipped.csv"))
         .map(d => ({lat: +d.lat, lon: +d.lon, psi: +d.psi}));
@@ -131,7 +132,10 @@ async function icemap() {
     window.render = m => {
         console.log("beginning render");
         let scale = d3.scaleSequential(d3.interpolateBlues)
-            .domain(d3.extent(months[m].map(d => d.psi)));
+            .domain([1, 0]);
+
+	// ocean is ice-free
+	svg.style("background-color", scale(0));
 
         // render the ice over the map
         let circles = svg.selectAll("circle.gridsquare")
