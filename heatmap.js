@@ -1,4 +1,4 @@
-function heatmap(data) {
+function heatmap() {
     let svg = d3.select("#heatmap table");
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
