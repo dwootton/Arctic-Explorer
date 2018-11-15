@@ -1,15 +1,16 @@
 body {
     margin: 0;
 }
-
+/*
 #container {
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
-    display: flex;
     flex-direction: column;
+    display: flex;
 }
+
 
 header {
     height: 20vh;
@@ -25,19 +26,55 @@ footer {
 }
 
 #map {
-    /* background-color: orange; */
     width: 50vw;
 }
-
+/*
 #aggregate {
-    /* background-color: purple; */
+
     width: 50vw;
 }
 
 #timeseries {
-    /* background-color: burlywood; */
     height: 20%;
 }
+*/
+/* Style the lines by removing the fill and applying a stroke */
+.line {
+    fill: none;
+    stroke: #add8e6;
+    stroke-width: 3;
+}
+
+/* Style the dots by assigning a fill and stroke */
+.dot {
+    fill: #add8e6;
+    stroke: #fff;
+}
+.selected {
+    fill: #003366;
+}
+text {
+    font-family:"arial";
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 60px;
+  height: 60px;
+  padding: 2px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+#chart {
+    margin: 20px;
+    padding: 5px;
+}
+</style>
 
 /* CONTENT */
 

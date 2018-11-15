@@ -1,7 +1,13 @@
-async function icemap(data) {
+async function icemap() {
     let svg = d3.select("#map svg");
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
+
+    let scale = d3.scaleSequential(d3.interpolateBlues)
+        .domain([1, 0]);
+
+    // ocean is ice-free
+    svg.style("background-color", scale(0));
 
     let projection = d3.geoGringortenQuincuncial()
         .translate([width / 2, height / 2])
@@ -29,8 +35,9 @@ async function icemap(data) {
         .append("path")
         // here we use the familiar d attribute again to define the path
         .attr("d", d => path(d.geometry))
-        .attr("fill", "#964B00");
+        .attr("fill", "#D2B48C");
 
+    let data = (await d3.json("data/lat_long_data.json")).positions;
     let zippeddata = Object.keys(data).map(key => {
         let latlong = parseLatLong(key);
         return {lat: latlong[0], lon: latlong[1], psi: data[key]};
@@ -38,11 +45,6 @@ async function icemap(data) {
 
     window.render = m => {
         console.log("beginning render");
-        let scale = d3.scaleSequential(d3.interpolateBlues)
-            .domain([1, 0]);
-
-	    // ocean is ice-free
-	    svg.style("background-color", scale(0));
 
         // render the ice over the map
         let circles = svg.selectAll("circle.gridsquare")
