@@ -77,94 +77,8 @@ div.tooltip {
 </div>
 
 <script src="heatmap.js"></script>
+<script src="javascript/icemap.js"></script>
 <script>
-
-heatmap();
-
-async function icemap() {
-    let svg = d3.select("#map svg");
-    let width = parseInt(svg.attr("width"));
-    let height = parseInt(svg.attr("height"));
-
-    let projection = d3.geoGringortenQuincuncial()
-        .translate([width / 2, height / 2])
-        .scale([700]);
-
-    let path = d3.geoPath()
-        .projection(projection);
-
-	svg
-        .append("path")
-        .datum(d3.geoGraticule())
-        .attr("class", "graticule") // styles provided in css file
-        .attr("d", path)
-        .attr("fill", "none")
-        .attr("stroke", "grey");	
-
-
-    // Load in GeoJSON data
-    let world = await d3.json("data/clipped-simplified.json");
-    // Bind data and create one path per GeoJSON feature
-    let geojson = topojson.feature(world, world.objects.countries);
-    svg.selectAll("path")
-        .data(geojson.features)
-        .enter()
-        .append("path")
-        // here we use the familiar d attribute again to define the path
-        .attr("d", d => path(d.geometry))
-	.attr("fill", "#964B00");
-
-    let zippeddata = (await d3.csv("data/zipped.csv"))
-        .map(d => ({lat: +d.lat, lon: +d.lon, psi: +d.psi}));
-        // .filter(d => d.psi !== 0);
-
-    let months = (await d3.json("data/months.json"));
-
-    months = months
-        .map(month => month.psijson.flat()
-            .map((d, i) => (
-                {lat: zippeddata[i].lat, lon: zippeddata[i].lon, psi: d}
-            ))
-            .filter(d => !isNaN(d.psi) && d.psi !== 0) // RESUME: why not just call psijson.flat() and then pull the lat long during render. e.g.: (d, i) => zipped[i]
-        );
-    /*
-    d3.select("#yearPicker")
-        .attr("min", 0)
-        .attr("max", months.length - 1)
-        .on("change", function () { window.render(this.value) })
-        .attr("value", 0);
-    */
-    window.render = m => {
-        console.log("beginning render");
-        let scale = d3.scaleSequential(d3.interpolateBlues)
-            .domain([1, 0]);
-
-	    // ocean is ice-free
-	    svg.style("background-color", scale(0));
-
-        // render the ice over the map
-        let circles = svg.selectAll("circle.gridsquare")
-            .data(months[m]);
-        circles.exit().remove();
-        circles
-            .enter()
-            .append("circle")
-            .attr("class", "gridsquare")
-            .merge(circles)
-            .attr("cx", function (d) {
-                return projection([d.lon, d.lat])[0];
-            })
-            .attr("cy", function (d) {
-                return projection([d.lon, d.lat])[1];
-            })
-            .attr("r", 2)
-            .attr("fill", d => scale(d.psi));
-        console.log("ending render");
-    };
-
-    window.render(0);
-};
-icemap();
 // The Time Series View of a given point THE BREAK OF SCRIPT COULD BE HERE
 
 
@@ -210,7 +124,7 @@ icemap();
 
         let chart = svg.append("g").attr("transform","translate(" +margin.left+"," + margin.top+")")
 
-        //let mydata = await d3.json("data/latlongtester2.json", function(data) {});
+        //let mydata = await d3.json("data/lat_long_data.json", function(data) {});
 
         let data = d3.json("data/totalConcentration.json")
             .then(function(mydata) {
@@ -385,6 +299,13 @@ icemap();
         return returnData;
     }
 
+    async function loadLatLong() {
+        let data = await d3.json("data/lat_long_data.json", function(data) {});
+
+        // heatmap(data);
+        icemap(data.positions);
+    }
+    loadLatLong();
 </script> 
 
 
