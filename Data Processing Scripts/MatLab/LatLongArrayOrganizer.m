@@ -46,9 +46,9 @@ for year_indx = 1:4:length(years)
 
         psi = ncread(fname,'seaice_conc_monthly_cdr');
         
-        
-        
+       
         psi(psi<0) = NaN;
+        
         psi(psi < 0.01) = 0;
         d(:,:,data_counter) = psi;
         
@@ -78,9 +78,10 @@ psi_localized = [];
 data_counter = data_counter - 1;
 
 for row = 1:max_rows
-    current_lat = lat(row,1);
+    
     for col = 1:max_cols
-        current_long = lon(1,col);
+        current_lat = lat(row,col);
+        current_long = lon(row,col);
         current_array = zeros(1,data_counter);
         for data_point = 1:data_counter 
             current_array(data_point) = d(row,col,data_point);

@@ -202,4 +202,3 @@ function filterData(query, allData) {
     }
 
 
-    
