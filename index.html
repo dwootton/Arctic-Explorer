@@ -52,14 +52,18 @@
 
 </div>
 
-<script src="heatmap.js"></script>
+<script src="javascript/heatmap.js"></script>
 <script src="javascript/icemap.js"></script>
 <script src="javascript/timeChart.js"></script>
 
 <script>
-heatmap();
+
 icemap();
-timeChart();
+
+let data = d3.json("data/totalConcentration.json");
+console.log(data);
+heatmap(data);
+timeChart(data);
 
 </script> 
 

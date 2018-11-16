@@ -32,7 +32,7 @@ function filterData(query, allData) {
         return returnData;
     }
 
-    async function timeChart() {
+    function timeChart(data) {
         let svg = d3.select('#chart svg');
         let width = parseInt(svg.attr("width"));
         let height = parseInt(svg.attr("height"));
@@ -40,33 +40,28 @@ function filterData(query, allData) {
 
         let chart = svg.append("g").attr("transform","translate(" +margin.left+"," + margin.top+")")
 
-        //let mydata = await d3.json("data/latlongtester2.json", function(data) {});
+        data.then(function(mydata) {
+              let startDate = new Date(1990,0);
+              let otherData = mydata.psijson;
 
-        let data = d3.json("data/totalConcentration.json")
-            .then(function(mydata) {
-                let startDate = new Date(1990,0);
-                let otherData = mydata.psijson;
+              let myQuery = [new Date(1990,0),new Date(1990,1), new Date(1990,2), new Date(1990,3), new Date(1990,4), new Date(1990,5), new Date(1990,6), new Date(1990,7), new Date(1990,8), new Date(1990,9), new Date(1990,10), new Date(1990,11)]; 
 
-                let myQuery = [new Date(1990,0),new Date(1990,1), new Date(1990,2), new Date(1990,3), new Date(1990,4), new Date(1990,5), new Date(1990,6), new Date(1990,7), new Date(1990,8), new Date(1990,9), new Date(1990,10), new Date(1990,11)]; 
+              let plottingData = generatePlottingData(otherData, startDate);
+              
+              plottingData = filterData(myQuery,plottingData);
 
-                let plottingData = generatePlottingData(otherData, startDate);
-                
-                plottingData = filterData(myQuery,plottingData);
+              drawChart(plottingData, chart);
 
-                drawChart(plottingData, chart);
-
-                chart.append("text")
-                    .attr("x", (width + margin.left - margin.right) / 2)          
-                    .attr("y", 0 - (margin.top / 4))
-                    .attr("text-anchor", "middle")  
-                    .style("font-size", "16px") 
-                    .text("Average Sea Ice Concentration");
-            });
-        
-        
-        }
-
-        timeChart() ;
+              chart.append("text")
+                  .attr("x", (width + margin.left - margin.right) / 2)          
+                  .attr("y", 0 - (margin.top / 4))
+                  .attr("text-anchor", "middle")  
+                  .style("font-size", "16px") 
+                  .text("Average Sea Ice Concentration");
+          });
+      
+      
+      }
 
     function drawChart(data, chart){
         let svg = d3.select('#chart svg');
