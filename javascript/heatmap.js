@@ -1,4 +1,4 @@
-function heatmap() {
+async function heatmap(data) {
     let svg = d3.select("#heatmap table");
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
@@ -10,10 +10,22 @@ function heatmap() {
                   "May", "Jun", "Jul", "Aug", 
                   "Sep", "Oct", "Nov", "Dec"];
 
+    data = (await data).psijson;
+
     let years = [];
     for (let i = startYear; i < endYear; i++) {
-        years.push(i);
+        let slice = data.splice(0, 12);
+        years.push({
+            year: i, 
+            months: months.map((m, i) => ({name: m, psi: slice[i]})),
+        });
     }
+
+    console.log(years);
+
+    let extent = d3.extent(data);
+    let scale = d3.scaleSequential(d3.interpolateBlues)
+        .domain([extent[1], extent[0]]);
 
     let head = svg.append("thead").append("tr");
 
@@ -30,13 +42,13 @@ function heatmap() {
         .enter()
         .append("tr");
 
-    rows.append("th").attr("class", "year").text(d => d);
+    rows.append("th").attr("class", "year").text(d => d.year);
 
     rows.selectAll("td.month")
-        .data(months)
+        .data(year => year.months)
         .enter()
         .append("td")
-        .style("background-color", "grey");
+        .style("background-color", d => scale(d.psi));
 
 
     let selection = null;
