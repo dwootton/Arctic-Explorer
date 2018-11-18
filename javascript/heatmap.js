@@ -1,7 +1,11 @@
-async function heatmap(data) {
-    let svg = d3.select("#heatmap table");
-    let width = parseInt(svg.attr("width"));
-    let height = parseInt(svg.attr("height"));
+async function heatmap(psidata) {
+    let table = d3.select("#heatmap table");
+    let width = parseInt(table.attr("width"));
+    let height = parseInt(table.attr("height"));
+
+    let head = table.append("thead").append("tr");
+    let tbody = table.append("tbody");
+    head.append("th");
 
     let startYear = 1990;
     let endYear = 1993; // noninclusive
@@ -10,63 +14,106 @@ async function heatmap(data) {
                   "May", "Jun", "Jul", "Aug", 
                   "Sep", "Oct", "Nov", "Dec"];
 
-    data = (await data).psijson;
+    let mousedown = false;
+    let selectedMonths = ["Jan", "Jul"];
+    let selectedYears = [1991];
 
-    let years = [];
-    for (let i = startYear; i < endYear; i++) {
-        let slice = data.splice(0, 12);
-        years.push({
-            year: i, 
-            months: months.map((m, i) => ({name: m, psi: slice[i]})),
-        });
-    }
+    d3.select("#heatmap #clear").on("click", () => {
+        selectedMonths = [];
+        selectedYears = [];
+        window.renderHeatmap();
+    });
 
-    console.log(years);
+    psidata = (await psidata).psijson;
 
-    let extent = d3.extent(data);
-    let scale = d3.scaleSequential(d3.interpolateBlues)
-        .domain([extent[1], extent[0]]);
+    window.renderHeatmap = () => {
+        let data = psidata.slice();
 
-    let head = svg.append("thead").append("tr");
+        let hasSelection = selectedMonths.length !== 0 || selectedYears.length !== 0;
+        let years = [];
+        for (let i = startYear; i < endYear; i++) {
+            let slice = data.splice(0, 12);
+            years.push({
+                year: i, 
+                selected: selectedYears.includes(i),
+                months: months.map((m, n) => ({
+                    name: m, 
+                    selected: selectedYears.includes(i) || selectedMonths.includes(m), 
+                    psi: slice[n]
+                })),
+            });
+        }
 
-    head.append("th");
+        console.log(years);
 
-    head.selectAll("th.month")
-        .data(months).enter()
-        .append("th")
-        .text(d => d)
-        .attr("class", "month");
+        let extent = d3.extent(data);
+        let scale = d3.scaleSequential(d3.interpolateBlues)
+            .domain([extent[1], extent[0]]);
+        let greyscale = d3.scaleSequential(d3.interpolateGreys)
+            .domain([extent[1], extent[0]]);
 
-    let rows = svg.append("tbody").selectAll("tr")
-        .data(years)
-        .enter()
-        .append("tr");
+        table.classed("hasSelection", hasSelection);
 
-    rows.append("th").attr("class", "year").text(d => d.year);
+        let colHeaders = head.selectAll("th.month")
+            .data(months);
+        colHeaders.enter()
+            .append("th")
+            .text(d => d)
+            .attr("class", "month")
+            .on("mousedown", (d) => {
+                selectedMonths = [d];
+                mousedown = true;
+                window.renderHeatmap();
+            })
+            .on("mouseover", d => {
+                if (mousedown) {
+                    selectedMonths.push(d);
+                    window.renderHeatmap();
+                }
+            })
+            .merge(colHeaders)
+            .classed("selected", d => selectedMonths.includes(d));
 
-    rows.selectAll("td.month")
-        .data(year => year.months)
-        .enter()
-        .append("td")
-        .style("background-color", d => scale(d.psi));
+        let rows = tbody.selectAll("tr")
+            .data(years);
+        let newRows = rows.enter()
+            .append("tr");
+        newRows.append("th")
+            .text(d => d.year)
+            .on("mousedown", d => {
+                selectedYears = [d.year];
+                mousedown = true;
+                window.renderHeatmap();
+            })
+            .on("mouseover", d => {
+                if (mousedown) {
+                    selectedYears.push(d.year);
+                    window.renderHeatmap();
+                }
+            });
+        rows = newRows
+            .merge(rows);
+        rows
+            .classed("selectedYear", d => d.selected)
+            .select("th")
+            .attr("class", d => `year ${d.selected ? "selected" : ""}`);
 
+        let cells = rows.selectAll("td.month")
+            .data(year => year.months)
+        cells.enter()
+            .append("td")
+            .attr("class", "month")
+            .merge(cells)
+            .style("background-color", d => hasSelection && !d.selected ? greyscale(d.psi) : scale(d.psi));
 
-    let selection = null;
+    };
+
     d3.select("body").on("mouseup", function() {
-        if (selection !== null) {
-            console.log("End: " + selection);
-            selection = null;
+        if (mousedown) {
+            mousedown = false;
+            window.renderHeatmap();
         }
     });
-    d3.selectAll("th.month").on("mouseover", d => {
-        if (selection !== null) {
-            console.log("Add: " + d);
-            selection.push(d);
-        }
-    });
-    d3.selectAll("th.month").on("mousedown", (d) => {
-        console.log("Start: " + d);
-        selection = [d];
-    });
-    d3.selectAll("th.year").on("click", d => console.log(d));
+
+    window.renderHeatmap();
 }

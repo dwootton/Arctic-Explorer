@@ -85,8 +85,27 @@ div.tooltip {
     pointer-events: none;
 }
 
+/* https://stackoverflow.com/a/4407335 */
+#heatmap th {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
 #heatmap td, #heatmap th {
   width: 40px;
   border: 2px solid white;
+}
+
+#heatmap .hasSelection {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+#heatmap th.selected {
+  color: black;
 }
 
