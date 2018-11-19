@@ -65,6 +65,7 @@ async function icemap() {
             .attr("fill", d => `rgba(255,255,255,${d.psi[m]})`);
         console.log("ending render");
     };
+    console.log("map window",window)
 
     window.render(0);
 };

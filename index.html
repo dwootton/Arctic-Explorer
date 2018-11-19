@@ -61,9 +61,9 @@
 icemap();
 
 let data = d3.json("data/totalConcentration.json");
-console.log(data);
+
 heatmap(data);
-timeChart(data);
+let currentChart = new TimeChart(data,window);
 
 </script> 
 

@@ -91,7 +91,6 @@ for row = 1:max_rows
             continue;
         end
         
-            
         lat_lon_name = strcat('l',num2str(current_lat),'x', num2str(current_long));
         lat_lon_name = strrep(lat_lon_name,'.','_');
         lat_lon_name = strrep(lat_lon_name,'-','neg');
@@ -99,7 +98,6 @@ for row = 1:max_rows
         structure.(lat_lon_name)= current_array;
     end
 end
-
 %% Write to a file
 lat_long_data =  savejson('positions',structure);
 
