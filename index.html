@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Arctic Explorer - Dylan Wootton and Ethan Ransom</title>
-    <!-- <link rel="stylesheet" href="styles/styles.css"/> -->
+    
     <script src="https://d3js.org/d3.v5.js"></script>
     <script src="https://d3js.org/d3-geo-projection.v2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.js"></script>
@@ -15,6 +15,8 @@
       <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
+<!-- Style sheet for layout and side bar: obtained from https://startbootstrap.com/template-overviews/simple-sidebar/ -->
+<link rel="stylesheet" href="styles/layoutStyles.css"/>
 <!-- jQuery library -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
@@ -28,51 +30,77 @@
 
 <body>
 
-<div id="container" class="container">
-    <header>
-        <h1>Arctic Explorer</h1>
-        <p class="info">Ethan Ransom and Dylan Wootton</p>
-    </header>
-
-    <main>
-        <section id="map">
-            <svg width="800" height="650"></svg>
-
-            
-        </section>
-        <section id="heatmap">
+    <div id="wrapper">
+        <div id="sidebar-wrapper">
+            <div id="heatmap">
             <button id="clear">Clear Filter</button>
             <table></table>
-        </section>
-         <!-- <input type="range" id="yearPicker" style="width: 500px"/> -->
+        </div>
+        </div>
 
-        <section id="aggregate"></section>
+        <div id="page-content-wrapper">
+            <div class="container-fluid" id = "container">
+                <header>
+                    <h1>Arctic Explorer</h1>
+                    <p class="info">Ethan Ransom and Dylan Wootton</p>
+                </header>
 
-    </main>
-    <section id="chart">
-            <svg width="800" height ="400"></svg>
-    </section>
+                <main>
+                    <section id="map">
+                        <svg width="800" height="650"></svg>
+                    </section>
+
+                             <!-- <input type="range" id="yearPicker" style="width: 500px"/> -->
+
+                    <section id="aggregate"></section>
+                </main>
+
+
+                <section id="chart">
+                </section>
+                <a href="#menu-toggle" class="btn btn-secondary" id="menu-toggle">Show Selector</a>
+            </div>
+        </div>
+    </div>
+<div id="container" class="container">
+    
 
 </div>
+<div>
 
+</div>
 <script src="javascript/heatmap.js"></script>
 <script src="javascript/icemap.js"></script>
 <script src="javascript/timeChart.js"></script>
+<!-- Bootstrap core JavaScript -->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
 
 <script>
 
 async function init() {
     icemap();
 
-    let data = d3.json("data/totalConcentration.json");
-    timeChart(data);
+    let data =  d3.json("data/totalConcentration.json");
+    //let timeChart = new TimeChart(data,window);
+    let currentChart = new TimeChart(data,window);
     data = await data;
-    let heatmap = new Heatmap(data, () => {});
-	let currentChart = new TimeChart(data,window);
+
+    let heatmap = new Heatmap(data, () => {}, currentChart);
+	
 }
 init();
 
 </script> 
+
 
 
 </body>

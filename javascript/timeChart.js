@@ -3,7 +3,136 @@
      *
      */
      constructor(data, window){
-        let svg = d3.select('#chart svg');
+
+
+
+
+        this.first = true;
+        this.margin = {top: 20, right: 30, bottom: 100, left: 50};
+        let fullWidth = 800;
+        let fullHeight = 400;
+
+        this.width = fullWidth - this.margin.left - this.margin.right;
+        this.height = fullHeight - this.margin.top - this.margin.bottom;
+        let that = this;
+
+        this.startDate = new Date(1990,0);
+
+        data.then(function(myData){
+
+
+          let data = myData.psijson;
+          let plottingData = that.bindDateToData(data, that.startDate)
+
+          that.allData = plottingData;
+          that.plottingData = plottingData;
+
+          that.concentrationScale = d3.scaleLinear()
+            .domain([0,1])
+            .range([that.height,0]).nice();
+
+          // Sets the scale for the x axis
+          that.timeScale = d3.scaleTime()
+            .domain(d3.extent(data, function(d) { 
+              return d.date; 
+            }))
+            .range([0, that.width]).nice(); 
+
+          that.xAxis = d3.axisBottom(that.timeScale).ticks(12);
+          that.yAxis = d3.axisLeft(that.concentrationScale).ticks(12 * that.height / that.width);
+
+          let lineGenerator = d3.line()
+            .x((d) => timeScale(d.date))
+            .y((d) => concentrationScale(d.data))
+            .curve(d3.curveMonotoneX);
+
+        that.svg = d3.select('#chart')
+          .append('svg')
+            .attr('height', fullHeight)
+            .attr('width', fullWidth);
+
+        that.svg.append("defs").append("clipPath")
+          .attr("id", "clip")
+          .append("rect")
+          .attr("width", that.width)
+          .attr("height", that.height);
+
+        that.zoomWindow = that.svg.append("rect")
+          .attr("clip-path", "url(#clip)")
+          .attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")")
+          .attr("width", that.width)
+          .attr("height", that.height)
+          .style("opacity", 1)
+          .style("fill", "whitesmoke");
+
+        that.svg.append("g")
+          .attr("class", "x axis ")
+          .attr('id', "axis--x")
+          .attr("transform", "translate(" + that.margin.left + "," + (that.height + that.margin.top) + ")")
+          .call(that.xAxis);
+
+        that.svg.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")")
+          .attr('id', "axis--y")
+          .call(that.yAxis);
+
+        that.line = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
+        that.dot = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
+        
+        let ref = that;
+
+        let zoomed = function(){
+          let new_yScale = d3.event.transform.rescaleY(ref.concentrationScale);
+          let new_xScale = d3.event.transform.rescaleX(ref.timeScale);
+          
+          // re-scale axes
+          ref.svg.select(".y.axis")
+              .call(ref.yAxis.scale(new_yScale));
+
+          ref.svg.select(".x.axis")
+              .call(ref.xAxis.scale(new_xScale));
+
+          // re-draw line
+          let plotLine = d3.line()
+              .curve(d3.curveMonotoneX)
+              .x(function (d) {
+                  return new_xScale(d.date);
+              })
+              .y(function (d) {
+                  return new_yScale(d.data);
+              });
+
+          ref.line.select('path').attr("d", plotLine);
+
+          ref.dot.selectAll('circle')          
+            .attr("cx", function(d) {
+              return new_xScale(d.date);
+            })
+            .attr("cy", function(d) {
+              return new_yScale(d.data);
+            })
+            .attr("r", function(d){
+              return 5;
+            });
+          
+
+          
+        }
+
+        var zoom = d3.zoom().on('zoom', zoomed);
+
+        that.zoomWindow.call(zoom);
+
+        that.update();
+
+        /*
+        let chart = svg
+          .append("g")
+            .attr("transform","translate(" + this.margin.left+"," + this.margin.top+")");
+
+
+        console.log('HEIGHT AND WIDTH!!!!',this.height,this.width);
         let that = this;
         console.log("timechart window",window)
         this.map = window;
@@ -16,34 +145,206 @@
           //that.map = window;
           that.data = data; 
           that.plottingData = plottingData;
-          that.margin = {top: 20, right: 30, bottom: 100, left: 50};
-          that.height = svg.attr("height");
-          that.width = svg.attr("width");
-          that.chart = svg.append("g").attr("transform","translate(" + that.margin.left+"," + that.margin.top+")")
+          
+
+          
+          that.chart = chart;
 
           that.timeChart();
         })
+        */
         
-     }
+     })
+   }
+  zoomed(event,ref) {
+
+        // Update Scales
+        
+    }
+
+
+    update(){
+
+      let xExtent = d3.extent(this.plottingData, d => d.date);
+      let yExtent = d3.extent(this.plottingData, d => d.data);
+
+      yExtent[1] = yExtent[1] +.05;
+
+      this.timeScale.domain(xExtent).nice();
+      this.concentrationScale.domain(yExtent).nice();
+
+      let view = d3.zoomTransform(this.zoomWindow.node());
+      let rescaledConcentrationScale = view.rescaleY(this.concentrationScale);
+      let rescaledTimeScale = view.rescaleX(this.timeScale)
+      let that = this;
+
+      let lineGenerator = d3.line()
+            .x(function(d){
+              return rescaledTimeScale(d.date)}
+              )
+            .y(function(d){
+              return rescaledConcentrationScale(d.data)})
+            .curve(d3.curveMonotoneX);
+
+      this.yAxis.scale(rescaledConcentrationScale);
+      this.xAxis.scale(rescaledTimeScale);
+
+      this.svg.transition().duration(750).select('.y.axis').call(this.yAxis);
+      this.svg.transition().duration(750).select('.x.axis').call(this.xAxis);
+
+      //let lineSelect = this.line.selectAll('path').data(this.plottingData);
+      console.log(this.first);
+
+      if(this.first){
+        this.first = false;
+        this.line
+          .attr("clip-path", "url(#clip)")
+          .append('path')
+            .datum(this.plottingData)
+            .attr('class','line')
+            .attr('d', lineGenerator)
+            .style('fill','none')
+            .style('stroke','black');
+
+        this.dot.selectAll().remove('*');
+
+        this.dot.append("g")
+          .attr("clip-path", "url(#clip)")
+          .selectAll(".dot")
+          .data(this.plottingData)
+            .enter().append("circle")
+            .attr("class", "dot")
+            .attr("r", 5)
+            .attr("cx", function(d) {
+              return rescaledTimeScale(d.date);
+            })
+            .attr("cy", function(d) {
+              return rescaledConcentrationScale(d.data);
+            })
+            .attr("stroke", "white")
+            .attr("stroke-width", "2px")
+            .style("fill", 'orange');
+
+        
+
+      } else {        
+        let lineSelect = this.line.select("path").datum(this.plottingData);
+        console.log(lineSelect)
+
+        lineSelect.transition().duration(750)
+          .attr("d", lineGenerator)
+          .attr('stroke','green');
+
+        //Update all circles
+        let scatterSelect = this.dot.selectAll("circle").data(this.plottingData);
+        
+        scatterSelect.transition()
+          .duration(750)
+          .attr("cx", function(d) {
+            return rescaledTimeScale(d.date);
+          })
+          .attr("cy", function(d) {
+            return rescaledConcentrationScale(d.data);
+          })
+          .attr("stroke", "white")
+          .attr("stroke-width", "2px")
+          .style("fill", 'green');
+
+        //Enter new circles
+        scatterSelect.enter()
+          .append("circle")
+            .attr("cx", function(d) {
+              return rescaledTimeScale(d.date);
+            })
+            .attr("cy", function(d) {
+              return rescaledConcentrationScale(d.data);
+            })
+            .attr("r", 5)
+            .attr("stroke", "white")
+            .attr("stroke-width", "2px")
+            .style("fill", 'red');
+
+        // Remove old
+        scatterSelect.exit().remove()
+      }
+
+      
+    
+
+      //lineSelect//.transition().duration(750)
+       // .attr('d',lineGenerator)
+
+      //Update all circles
+      /*
+      let scatterSelect = this.dot.selectAll("circle").data(this.plottingData);
+      
+      scatterSelect.transition()
+        .duration(750)
+        .attr("cx", function(d) {
+          return new_xScale(d.);
+        })
+        .attr("cy", function(d) {
+          return new_yScale(d.y);
+        })
+        .attr("stroke", "white")
+        .attr("stroke-width", "2px")
+        .style("fill", function() {
+          return d.color = color(d.key);
+         });
+
+      //Enter new circles
+      scatterSelect.enter()
+        .append("circle")
+          .attr("cx", function(d) {
+            return new_xScale(d.x);
+          })
+          .attr("cy", function(d) {
+            return new_yScale(d.y);
+          })
+          .attr("r", 5)
+          .attr("stroke", "white")
+          .attr("stroke-width", "2px")
+          .style("fill", function() {
+            return d.color = color(d.key);
+          })
+          .on("click", function(d,i) {
+            let s = d3.select(this);
+            remove(s,i, d.name);
+          });
+
+      // Remove old
+      scatterSelect.exit().remove()
+      */
+    }
+    
 
      filterDataFromHeatMap(query, allData) {
         let returnData = [];
         let counter = 0;
 
         for(let i = 0; i < allData.length; i++){
-            if(query[counter] && allData[i].date.getMonth() == query[counter].getMonth() && allData[i].date.getFullYear() == query[counter].getFullYear()){
+          //console.log('query: ', query[counter]);
+          console.log('data: ', allData[i]);
+
+            let inArray = !!query.find(item => {return item.getTime() == allData[i].date.getTime()});
+
+            if(inArray){
+              //query[counter] && allData[i].date.getMonth() == query[counter].getMonth() && allData[i].date.getFullYear() == query[counter].getFullYear()){
+              console.log('query: ', query);
+              console.log('data: ', allData[i]);
                 returnData.push(allData[i]);
-                counter += 1;
+                //counter += 1;
             }
         }
         return returnData;
      };
-
+/*
      selectData(){
         this.plottingData = newData;
         timeChart();
      }
-
+  */
+  
      bindDateToData(data,startDate){
         let returnData = [];
         let currentDate = new Date(startDate);
@@ -61,6 +362,16 @@
         return returnData;
     }
 
+    selectData(dates){
+      //dates = [new Date(1990,0), new Date(1994,2), new Date(2001,1)]
+      //console.log('before',dates);
+
+      this.plottingData = this.filterDataFromHeatMap(dates, this.allData);
+      //console.log('after:' , this.plottingData)
+      this.update();
+    }
+
+/*
     timeChart() {
         let chart = this.chart;
         let that = this;
@@ -117,16 +428,7 @@
             .y((d) => concentrationScale(d.data))
             .curve(d3.curveMonotoneX);
 
-        // Append x axis
-        chart.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + (height-margin.bottom) + ")")
-            .call(d3.axisBottom(timeScale)); // Create an axis component with d3.axisBottom
-
-        // Append y axis
-        chart.append("g")
-            .attr("class", "y axis")
-            .call(d3.axisLeft(concentrationScale)); // Create an axis component with d3.axisLeft
+        
 
         // Append the path 
         let path = chart.append("path")
@@ -213,18 +515,29 @@
     }
 
     appendLabels(){
+      // Append x axis
+        this.chart.append("g")
+            .attr("class", "x axis")
+            //.attr("transform", "translate(0," + (height-margin.bottom) + ")")
+            .call(d3.axisBottom(timeScale)); // Create an axis component with d3.axisBottom
+
+        // Append y axis
+        this.chart.append("g")
+            .attr("class", "y axis")
+            .call(d3.axisLeft(concentrationScale)); // Create an axis component with d3.axisLeft
+
       // Add Y Label
         this.chart.append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 0 - this.margin.left)
-            .attr("x",0 - ((this.height-this.margin.bottom)/ 2))
+            //.attr("x",0 - ((this.height-this.margin.bottom)/ 2))
             .attr("dy", "1em")
             .style("text-anchor", "middle")
             .text("Sea Ice Concentration");
 
         // Add X Label
         this.chart.append("text")
-            .attr("y", this.height - (this.margin.bottom + this.margin.top)/1.5)
+            //.attr("y", this.height - (this.margin.bottom + this.margin.top)/1.5)
             .attr("x", (this.width - this.margin.right)/2)
             .attr("dy", "1em")
             .style("text-anchor", "middle")
@@ -243,7 +556,7 @@
       }
       return returnDates;
     }
-
-  }  
+  */
+}
 
 
