@@ -6,7 +6,7 @@
 
 
 
-
+        this.map = window;
         this.first = true;
         this.margin = {top: 20, right: 30, bottom: 100, left: 50};
         let fullWidth = 800;
@@ -54,6 +54,7 @@
         that.svg.append("defs").append("clipPath")
           .attr("id", "clip")
           .append("rect")
+          //.attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")")
           .attr("width", that.width)
           .attr("height", that.height);
 
@@ -79,6 +80,15 @@
 
         that.line = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
         that.dot = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
+
+        that.svg.append("text")
+                  .attr("x", (that.width + that.margin.left - that.margin.right) / 2)          
+                  .attr("y", 0 + (that.margin.top*2 / 3))
+                  .attr("text-anchor", "middle")  
+                  .style("font-size", "16px") 
+                  .text("Average Sea Ice Concentration");
+
+        that.appendLabels();
         
         let ref = that;
 
@@ -120,6 +130,10 @@
           
         }
 
+        that.div = d3.select("body").append("div")   
+            .attr("class", "tooltip")               
+            .style("opacity", 0);
+
         var zoom = d3.zoom().on('zoom', zoomed);
 
         that.zoomWindow.call(zoom);
@@ -156,6 +170,23 @@
         
      })
    }
+   appendLabels(){
+    this.svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -3)
+            .attr("x",0 - ((this.height+this.margin.top)/ 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Sea Ice Concentration");
+
+        // Add X Label
+        this.svg.append("text")
+            .attr("y", this.height+this.margin.top+20)
+            .attr("x", ((this.width+this.margin.left)/2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Date");
+   }
   zoomed(event,ref) {
 
         // Update Scales
@@ -168,6 +199,11 @@
       let xExtent = d3.extent(this.plottingData, d => d.date);
       let yExtent = d3.extent(this.plottingData, d => d.data);
 
+      console.log('before', xExtent)
+
+      xExtent[0] = new Date(xExtent[0]).setMonth(xExtent[0].getMonth() - 1);
+      xExtent[1] = new Date(xExtent[1]).setMonth(xExtent[1].getMonth() + 1);
+      console.log('after', xExtent)
       yExtent[1] = yExtent[1] +.05;
 
       this.timeScale.domain(xExtent).nice();
@@ -208,7 +244,7 @@
 
         this.dot.selectAll().remove('*');
 
-        this.dot.append("g")
+        let chartCircles = this.dot.append("g")
           .attr("clip-path", "url(#clip)")
           .selectAll(".dot")
           .data(this.plottingData)
@@ -225,6 +261,46 @@
             .attr("stroke-width", "2px")
             .style("fill", 'orange');
 
+        let toolTipAppearDuration = 200;
+        let toolTipDisappearDuration = 400;
+        // Appends functionality
+        let monthNames = ["Jan", "Feb", "Mar", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+        // Creates tool tip
+        chartCircles
+            .on("mouseover", function(d) {
+               that.div.transition()
+                 .duration(toolTipAppearDuration)
+                 .style("opacity", .7);
+               that.div.html(monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
+                 .style("top", d3.event.pageY - 70 + "px")
+                 .style("left", d3.event.pageX - 30 + "px");
+               })
+
+        // Handles tool tip
+        chartCircles
+             .on("mouseout", function(d) {
+               that.div.transition()
+                 .duration(toolTipDisappearDuration)
+                 .style("opacity", 0);
+               })
+
+        // Handels point selection
+        chartCircles
+             .on("click", function(element){
+                d3.selectAll("circle").classed("selected", false);
+                d3.select(this).classed("selected", true);
+                console.log((element.date.getYear()*12))
+                console.log(that.startDate)
+                let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
+
+                monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
+                console.log(monthsSinceStart);
+                that.map.render(monthsSinceStart)
+             });
+
+
+
         
 
       } else {        
@@ -235,8 +311,8 @@
           .attr("d", lineGenerator)
           .attr('stroke','green');
 
-        //Update all circles
-        let scatterSelect = this.dot.selectAll("circle").data(this.plottingData);
+        //Update all circles under the clipping group
+        let scatterSelect = this.dot.select('g').selectAll("circle").data(this.plottingData);
         
         scatterSelect.transition()
           .duration(750)
@@ -251,7 +327,7 @@
           .style("fill", 'green');
 
         //Enter new circles
-        scatterSelect.enter()
+        let newCircles = scatterSelect.enter()
           .append("circle")
             .attr("cx", function(d) {
               return rescaledTimeScale(d.date);
@@ -263,6 +339,44 @@
             .attr("stroke", "white")
             .attr("stroke-width", "2px")
             .style("fill", 'red');
+
+        let toolTipAppearDuration = 200;
+        let toolTipDisappearDuration = 400;
+        // Appends functionality
+        let monthNames = ["Jan", "Feb", "Mar", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+        // Creates tool tip
+        newCircles
+            .on("mouseover", function(d) {
+               that.div.transition()
+                 .duration(toolTipAppearDuration)
+                 .style("opacity", .7);
+               that.div.html(monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
+                 .style("top", d3.event.pageY - 70 + "px")
+                 .style("left", d3.event.pageX - 30 + "px");
+               })
+
+        // Handles tool tip
+        newCircles
+             .on("mouseout", function(d) {
+               that.div.transition()
+                 .duration(toolTipDisappearDuration)
+                 .style("opacity", 0);
+               })
+
+        // Handels point selection
+        newCircles
+             .on("click", function(element){
+                d3.selectAll("circle").classed("selected", false);
+                d3.select(this).classed("selected", true);
+                console.log((element.date.getYear()*12))
+                console.log(that.startDate)
+                let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
+
+                monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
+                console.log(monthsSinceStart);
+                that.map.render(monthsSinceStart)
+             });
 
         // Remove old
         scatterSelect.exit().remove()
