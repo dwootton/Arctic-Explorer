@@ -61,12 +61,16 @@
 
 <script>
 
-icemap();
+async function init() {
+    icemap();
 
-let data = d3.json("data/totalConcentration.json");
-
-heatmap(data);
-let currentChart = new TimeChart(data,window);
+    let data = d3.json("data/totalConcentration.json");
+    timeChart(data);
+    data = await data;
+    let heatmap = new Heatmap(data, () => {});
+	let currentChart = new TimeChart(data,window);
+}
+init();
 
 </script> 
 

@@ -1,48 +1,62 @@
-async function heatmap(psidata) {
-    let table = d3.select("#heatmap table");
-    let width = parseInt(table.attr("width"));
-    let height = parseInt(table.attr("height"));
+const months = ["Jan", "Feb", "Mar", "Apr", 
+  "May", "Jun", "Jul", "Aug", 
+  "Sep", "Oct", "Nov", "Dec"];
 
-    let head = table.append("thead").append("tr");
-    let tbody = table.append("tbody");
-    head.append("th");
+class Heatmap {
+    constructor(psidata, filterCallback) {
+        this.table = d3.select("#heatmap table");
+        this.width = parseInt(this.table.attr("width"));
+        this.height = parseInt(this.table.attr("height"));
 
-    let startYear = 1990;
-    let endYear = 1993; // noninclusive
+        this.head = this.table.append("thead").append("tr");
+        this.tbody = this.table.append("tbody");
+        this.head.append("th");
 
-    let months = ["Jan", "Feb", "Mar", "Apr", 
-                  "May", "Jun", "Jul", "Aug", 
-                  "Sep", "Oct", "Nov", "Dec"];
+        this.startYear = 1990;
+        this.endYear = 1993; // noninclusive
 
-    let mousedown = false;
-    let selectedMonths = ["Jan", "Jul"];
-    let selectedYears = [1991];
 
-    d3.select("#heatmap #clear").on("click", () => {
-        selectedMonths = [];
-        selectedYears = [];
-        window.renderHeatmap();
-    });
+        this.mousedown = false;
+        this.selectedMonths = ["Jan", "Jul"];
+        this.selectedYears = [1991];
 
-    psidata = (await psidata).psijson;
+        d3.select("#heatmap #clear").on("click", () => {
+            this.selectedMonths = [];
+            this.selectedYears = [];
+            this.render();
+        });
 
-    window.renderHeatmap = () => {
-        let data = psidata.slice();
+        this.psidata = psidata.psijson;
 
-        let hasSelection = selectedMonths.length !== 0 || selectedYears.length !== 0;
+        d3.select("body").on("mouseup", () => {
+            if (this.mousedown === true) {
+                this.mousedown = false;
+                this.render(); // we actually might not need this render
+                filterCallback(this.selectedMonths, this.selectedYears);
+            }
+        });
+
+        this.render();
+    }
+
+    render() {
+        let data = this.psidata.slice(); // shallow copy
+
         let years = [];
-        for (let i = startYear; i < endYear; i++) {
+        for (let i = this.startYear; i < this.endYear; i++) {
             let slice = data.splice(0, 12);
             years.push({
                 year: i, 
-                selected: selectedYears.includes(i),
+                selected: this.selectedYears.includes(i),
                 months: months.map((m, n) => ({
                     name: m, 
-                    selected: selectedYears.includes(i) || selectedMonths.includes(m), 
+                    selected: this.selectedYears.includes(i) || this.selectedMonths.includes(m), 
                     psi: slice[n]
                 })),
             });
         }
+
+        let hasSelection = this.selectedMonths.length !== 0 || this.selectedYears.length !== 0;
 
         console.log(years);
 
@@ -52,43 +66,43 @@ async function heatmap(psidata) {
         let greyscale = d3.scaleSequential(d3.interpolateGreys)
             .domain([extent[1], extent[0]]);
 
-        table.classed("hasSelection", hasSelection);
+        this.table.classed("hasSelection", hasSelection);
 
-        let colHeaders = head.selectAll("th.month")
+        let colHeaders = this.head.selectAll("th.month")
             .data(months);
         colHeaders.enter()
             .append("th")
             .text(d => d)
             .attr("class", "month")
-            .on("mousedown", (d) => {
-                selectedMonths = [d];
-                mousedown = true;
-                window.renderHeatmap();
+            .on("mousedown", d => {
+                this.selectedMonths = [d];
+                this.mousedown = true;
+                this.render();
             })
             .on("mouseover", d => {
-                if (mousedown) {
-                    selectedMonths.push(d);
-                    window.renderHeatmap();
+                if (this.mousedown === true) {
+                    this.selectedMonths.push(d);
+                    this.render();
                 }
             })
             .merge(colHeaders)
-            .classed("selected", d => selectedMonths.includes(d));
+            .classed("selected", d => this.selectedMonths.includes(d));
 
-        let rows = tbody.selectAll("tr")
+        let rows = this.tbody.selectAll("tr")
             .data(years);
         let newRows = rows.enter()
             .append("tr");
         newRows.append("th")
             .text(d => d.year)
             .on("mousedown", d => {
-                selectedYears = [d.year];
-                mousedown = true;
-                window.renderHeatmap();
+                this.selectedYears = [d.year];
+                this.mousedown = true;
+                this.render();
             })
             .on("mouseover", d => {
-                if (mousedown) {
-                    selectedYears.push(d.year);
-                    window.renderHeatmap();
+                if (this.mousedown === true) {
+                    this.selectedYears.push(d.year);
+                    this.render();
                 }
             });
         rows = newRows
@@ -106,14 +120,5 @@ async function heatmap(psidata) {
             .merge(cells)
             .style("background-color", d => hasSelection && !d.selected ? greyscale(d.psi) : scale(d.psi));
 
-    };
-
-    d3.select("body").on("mouseup", function() {
-        if (mousedown) {
-            mousedown = false;
-            window.renderHeatmap();
-        }
-    });
-
-    window.renderHeatmap();
+    }
 }
