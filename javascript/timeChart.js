@@ -1,11 +1,14 @@
+  /*
+  References: 
+  For line hiding via click: http://bl.ocks.org/d3noob/5d621a60e2d1d02086bf
+
+  */
+
   class TimeChart {
     /**
      *
      */
      constructor(data, window){
-
-
-
         this.map = window;
         this.first = true;
         this.margin = {top: 20, right: 30, bottom: 100, left: 50};
@@ -16,7 +19,12 @@
         this.height = fullHeight - this.margin.top - this.margin.bottom;
         let that = this;
 
+        this.currentDates = [new Date(1991,0),  new Date(1991,6)];
+
         this.startDate = new Date(1990,0);
+        this.averageLineActive = true;
+
+
 
         data.then(function(myData){
 
@@ -26,6 +34,7 @@
 
           that.allData = plottingData;
           that.plottingData = plottingData;
+          that.calculateAverages();
 
           that.concentrationScale = d3.scaleLinear()
             .domain([0,1])
@@ -80,6 +89,7 @@
 
         that.line = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
         that.dot = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
+        that.avgLine = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
 
         that.svg.append("text")
                   .attr("x", (that.width + that.margin.left - that.margin.right) / 2)          
@@ -114,6 +124,7 @@
               });
 
           ref.line.select('path').attr("d", plotLine);
+          ref.avgLine.select('path').attr("d",plotLine);
 
           ref.dot.selectAll('circle')          
             .attr("cx", function(d) {
@@ -125,10 +136,22 @@
             .attr("r", function(d){
               return 5;
             });
-          
-
-          
         }
+        // optinos for d3.js 'hiding average'
+         ref.svg.append("text")
+            .attr("x", ref.width-75)             
+            .attr("y", ref.margin.top+15)    
+            .attr("class", "legend")
+            .style("fill", "orange")         
+            .on("click", function(){
+              // Determine if current line is visible
+              let active   = ref.averageLineActive ? false : true ,
+                newOpacity = active ? 0 : 1;
+              ref.averageLineActive = active;
+              // Hide or show the elements
+              ref.avgLine.transition(500).style("opacity", newOpacity);
+            })
+            .text("Show Average Line");
 
         that.div = d3.select("body").append("div")   
             .attr("class", "tooltip")               
@@ -137,6 +160,7 @@
         var zoom = d3.zoom().on('zoom', zoomed);
 
         that.zoomWindow.call(zoom);
+
 
         that.update();
 
@@ -187,23 +211,43 @@
             .style("text-anchor", "middle")
             .text("Date");
    }
-  zoomed(event,ref) {
 
-        // Update Scales
-        
+  calculateAverages(){
+    let data = this.allData;
+    let monthlyAverages = [];
+
+    for(let i = 0; i < 12; i++){
+      let counter = i;
+      let runningSum = 0;
+      let runningCounter = 0;
+      while(counter < data.length){
+        runningSum += data[counter].data;
+        runningCounter += 1;
+        counter += 12;
+      }
+      monthlyAverages.push(runningSum/runningCounter);
     }
+    let totalAverages = Array(2017-1990).fill(monthlyAverages);
+    totalAverages = [].concat.apply([],totalAverages);
+
+    this.allAveragedData = this.bindDateToData(totalAverages, this.startDate);
+    console.log(this.allAveragedData);
+    this.averagedData = this.allAveragedData;
+  } 
+
+  selectAverage(query){
+    this.averagedData = this.filterDataToQuery(this.currentDates, this.allAveragedData);
+  }
 
 
-    update(){
+  update(){
 
       let xExtent = d3.extent(this.plottingData, d => d.date);
       let yExtent = d3.extent(this.plottingData, d => d.data);
 
-      console.log('before', xExtent)
-
+      // adjust extents to ensure that the chart renders correctly
       xExtent[0] = new Date(xExtent[0]).setMonth(xExtent[0].getMonth() - 1);
       xExtent[1] = new Date(xExtent[1]).setMonth(xExtent[1].getMonth() + 1);
-      console.log('after', xExtent)
       yExtent[1] = yExtent[1] +.05;
 
       this.timeScale.domain(xExtent).nice();
@@ -229,18 +273,28 @@
       this.svg.transition().duration(750).select('.x.axis').call(this.xAxis);
 
       //let lineSelect = this.line.selectAll('path').data(this.plottingData);
-      console.log(this.first);
 
       if(this.first){
         this.first = false;
+
         this.line
           .attr("clip-path", "url(#clip)")
           .append('path')
             .datum(this.plottingData)
-            .attr('class','line')
+            .attr('class','dataLine')
             .attr('d', lineGenerator)
             .style('fill','none')
             .style('stroke','black');
+
+        this.avgLine
+          .attr("clip-path", "url(#clip)")
+            .append('path')
+              .datum(this.averagedData)
+              .attr('class','averageLine')
+              .attr('d', lineGenerator)
+              .style('fill','none')
+              .style("stroke-dasharray", ("3, 3"))
+              .style('stroke','orange');
 
         this.dot.selectAll().remove('*');
 
@@ -290,12 +344,9 @@
              .on("click", function(element){
                 d3.selectAll("circle").classed("selected", false);
                 d3.select(this).classed("selected", true);
-                console.log((element.date.getYear()*12))
-                console.log(that.startDate)
                 let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
 
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
-                console.log(monthsSinceStart);
                 that.map.render(monthsSinceStart)
              });
 
@@ -305,11 +356,20 @@
 
       } else {        
         let lineSelect = this.line.select("path").datum(this.plottingData);
-        console.log(lineSelect)
 
         lineSelect.transition().duration(750)
           .attr("d", lineGenerator)
           .attr('stroke','green');
+
+        let averageLineSelect = this.avgLine.select("path").datum(this.averagedData);
+
+        averageLineSelect.transition().duration(750)
+          .attr("d", lineGenerator)
+          .attr('stroke','purple');
+
+
+
+
 
         //Update all circles under the clipping group
         let scatterSelect = this.dot.select('g').selectAll("circle").data(this.plottingData);
@@ -369,12 +429,9 @@
              .on("click", function(element){
                 d3.selectAll("circle").classed("selected", false);
                 d3.select(this).classed("selected", true);
-                console.log((element.date.getYear()*12))
-                console.log(that.startDate)
                 let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
 
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
-                console.log(monthsSinceStart);
                 that.map.render(monthsSinceStart)
              });
 
@@ -432,22 +489,16 @@
     }
     
 
-     filterDataFromHeatMap(query, allData) {
+     filterDataToQuery(query,allData) {
         let returnData = [];
         let counter = 0;
 
         for(let i = 0; i < allData.length; i++){
-          //console.log('query: ', query[counter]);
-          console.log('data: ', allData[i]);
 
             let inArray = !!query.find(item => {return item.getTime() == allData[i].date.getTime()});
 
             if(inArray){
-              //query[counter] && allData[i].date.getMonth() == query[counter].getMonth() && allData[i].date.getFullYear() == query[counter].getFullYear()){
-              console.log('query: ', query);
-              console.log('data: ', allData[i]);
                 returnData.push(allData[i]);
-                //counter += 1;
             }
         }
         return returnData;
@@ -477,11 +528,10 @@
     }
 
     selectData(dates){
-      //dates = [new Date(1990,0), new Date(1994,2), new Date(2001,1)]
-      //console.log('before',dates);
 
-      this.plottingData = this.filterDataFromHeatMap(dates, this.allData);
-      //console.log('after:' , this.plottingData)
+      this.plottingData = this.filterDataToQuery(dates, this.allData);
+      this.currentDates = dates;
+      this.averageData = this.selectAverage(dates);
       this.update();
     }
 
