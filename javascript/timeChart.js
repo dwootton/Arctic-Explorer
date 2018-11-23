@@ -300,18 +300,6 @@
           .selectAll('circle')
           .data([this.selectedDate]);
 
-        console.log(circles);
-          
-          circles
-            .attr('r', 10)
-            .attr('cx', function(d){
-              return rescaledTimeScale(d);
-            })
-            .attr('cy', function(d){
-              return that.height;
-            })
-            .attr('fill','red');
-
           let enterCircles = circles
             .enter().append('circle')
             .attr('class','slider')
@@ -322,7 +310,7 @@
             .attr('cy', function(d){
               return that.height;
             })
-            .attr('fill','red');
+            .attr('fill','blue');
         console.log(enterCircles);
 
         this.line
@@ -396,16 +384,17 @@
                 let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
                 that.selectedDate = element.date;
                 console.log(that.selectedDate);
-                that.updateSlider();
+                
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
                 that.map.render(monthsSinceStart)
+                console.log("no render")
+                that.updateSlider();
+
              });
+          console.log(this.first);
       } else {  
-      console.log(this.currentTimeScale);      
+        console.log(this.first);      
         this.updateSlider();
-
-          
-
 
         let lineSelect = this.line.select("path").datum(this.plottingData);
 
@@ -492,39 +481,46 @@
     }
 
       updateSlider(){
+
         let that = this;
-        console.log(this.selectedDate);
         let selectorSelect = this.selector
           .selectAll('circle')
           .data([this.selectedDate]);
+        console.log(selectorSelect);
+          /// TODO: FIGURE OUT WHY THE SELECTOR ISNT TRANSITIONING PROPERLY.!
 
-        selectorSelect.transition(750)
+        selectorSelect
+          .transition()
           .attr('cx', function(d){
-              return that.currentTimeScale(d);
+            console.log('I"m being used!')
+              return that.currentTimeScale(that.selectedDate);
             })
             .attr('cy', function(d){
               return that.height;
             })
           .attr("stroke", "white")
           .attr("stroke-width", "2px")
-          .style("fill", 'green');
-
-        selectorSelect.exit().remove()
-
+          .style("fill", 'purple');
+          /*
         let newSelector = selectorSelect.enter()
           .append('circle')
             .attr('class','slider')
             .attr('r', 10)
             .transition(750)
             .attr('cx', function(d){
-              return that.currentTimeScale(d);
+              console.log(that.currentTimeScale(that.selectedDate))
+              return that.currentTimeScale(that.selectedDate);
             })
             .attr('cy', function(d){
               return that.height;
             })
             .attr('fill','red');
+        */
+        selectorSelect.exit().remove()
 
-        console.log(newSelector);
+
+        //console.log(newSelector);
+        
       }
       
     
@@ -622,7 +618,7 @@
       
       this.averageData = this.selectAverage(dates);
       this.update();
-      //this.updateSlider()
+//      this.updateSlider()
     }
 
 /*
