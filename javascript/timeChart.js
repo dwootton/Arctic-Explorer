@@ -382,12 +382,9 @@
                 d3.selectAll("circle").classed("selected", false);
                 d3.select(this).classed("selected", true);
                 let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
-                that.selectedDate = element.date;
-                console.log(that.selectedDate);
-                
+                that.selectedDate = element.date;                
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
                 that.map.render(monthsSinceStart)
-                console.log("no render")
                 that.updateSlider();
 
              });

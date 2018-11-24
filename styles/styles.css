@@ -1,6 +1,12 @@
 body {
     margin: 0;
 }
+
+line {
+    stroke: steelblue;
+    stroke-width: 2px;
+    stroke-linecap: round;
+}
 /*
 #container {
     width: 100%;

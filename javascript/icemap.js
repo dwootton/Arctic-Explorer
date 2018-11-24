@@ -1,5 +1,64 @@
+
+
+
 async function icemap() {
     let svg = d3.select("#map svg");
+
+    let vis = svg
+    .on("mousedown", mousedown)
+    .on("mouseup", mouseup);
+
+    let line;
+    //WORK ON LINE DRAWING!!!!!!!// 
+    let i = 0;
+    let xPosition = [];
+    let yPosition = [];
+
+    function mousedown() {
+        console.log('clicked down!')
+        let m = d3.mouse(this);
+        xPosition.push(m[0]);
+        yPosition.push(m[1]);
+
+        if(i >= 1){
+            line = vis.append("line").attr('class','navigationLine')
+            .attr("x1", xPosition[i])
+            .attr("y1", yPosition[i])
+            .attr("x2", xPosition[i])
+            .attr("y2", yPosition[i]);
+
+        } else {
+            line = vis.append("line").attr('class','navigationLine')
+            .attr("x1", m[0])
+            .attr("y1", m[1])
+            .attr("x2", m[0])
+            .attr("y2", m[1]);
+        }
+        i++;
+        
+        
+        vis.on("mousemove", mousemove);
+    }
+
+    function mousemove() {
+        var m = d3.mouse(this);
+
+        line.attr("x2", m[0])
+            .attr("y2", m[1]);
+
+        xPosition[i] = m[0];
+        yPosition[i] = m[1];
+    }
+
+    function mouseup() {
+        var m = d3.mouse(this);
+        console.log('clicked up!')
+        xPosition[i] = m[0];
+        yPosition[i] = m[1];
+        vis.on("mousemove", null);
+    }
+
+
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
 
@@ -45,6 +104,13 @@ async function icemap() {
 
     window.render = m => {
         console.log("beginning render");
+        d3.selectAll('.navigationLine')
+            .remove()
+        i = 0;
+        xPosition = [];
+        yPosition = [];
+
+
 
         // render the ice over the map
         let circles = svg.selectAll("circle.gridsquare")
@@ -55,6 +121,7 @@ async function icemap() {
             .append("circle")
             .attr("class", "gridsquare")
             .merge(circles)
+            .transition('750')
             .attr("cx", function (d) {
                 return projection([d.lon, d.lat])[0];
             })
