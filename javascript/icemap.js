@@ -73,6 +73,7 @@ async function icemap() {
         .range(["#0C3169", '#fff'])
         .domain([0, 1]);
 
+    let prevColors = [];
 
     window.render = m => {
 
@@ -103,7 +104,7 @@ async function icemap() {
             d.mean = d3.mean(d, function(p) { return p.val; });
           });
 
-        hexLayer.selectAll('g').remove();
+        hexLayer.selectAll('g').remove().transition().duration(4000);
 
         let hex = hexLayer.append('g').selectAll("path")
           .data(bins);
@@ -115,26 +116,32 @@ async function icemap() {
           .enter().append("path")
             .attr('class', 'hexagon')
             .attr("d", function(d) { return "M" + d.x + "," + d.y + hexGenerator.hexagon(); })
-            /*
-            .attr("fill", function(d,i){
-                let vals = d.map( function(element){
-                    return element.val;
-                })
-                let sum = 0;
-                sum = vals.reduce(function(a, b) { return a + b; });
-                avg[i] = sum / vals.length;
-                
-                return color(d.min);
-            }) */
-            .attr("fill", function(d,i){  
-                return color(d.mean);
-            })
-            .attr('fill-opacity',"0.8")
-            .attr('stroke', function(d,i){
-                return color(d.mean);
-            })
             .attr('stroke-width','1px')
-            .attr('stroke-opacity',"0.1");
+            .attr('stroke-opacity',"0.1")
+            .attr('fill-opacity','0.7')
+            .attr("fill", function(d,i){
+                if(!prevColors[i]){
+                    prevColors[i] = color(d.mean);
+                }  
+                return prevColors[i];
+            })
+            .attr('stroke', function(d,i){
+                if(!prevColors[i]){
+                    prevColors[i] = color(d.mean);
+                }  
+                return prevColors[i];
+            })
+            .transition()
+            .duration(1000)
+            .attr("fill", function(d,i){
+                prevColors[i] = color(d.mean);
+                return color(d.mean);
+            })
+            .attr('stroke', function(d,i){
+                prevColors[i] = color(d.mean);
+                return color(d.mean);
+            })
+            
         /*
         // render the ice over the map
         let rects = svg.selectAll("rect.gridsquare")
