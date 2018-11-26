@@ -1,18 +1,13 @@
 
-
+// Spline drawing from: https://bl.ocks.org/mbostock/4342190
 
 async function icemap() {
     let svg = d3.select("#map svg");
 
-    let vis = svg
-    .on("mousedown", mousedown)
-    .on("mouseup", mouseup);
+    
 
-    let line;
-    //WORK ON LINE DRAWING!!!!!!!// 
-    let i = 0;
-    let xPosition = [];
-    let yPosition = [];
+
+    /* Old Line creation:
 
     function mousedown() {
         console.log('clicked down!')
@@ -55,11 +50,12 @@ async function icemap() {
         console.log('clicked up!')
         let linePoints = calculateLinePoints(xPosition[i-1],yPosition[i-1],xPosition[i],yPosition[i],5);
         console.log(linePoints);
-        
+
         xPosition[i] = m[0];
         yPosition[i] = m[1];
         vis.on("mousemove", null);
     }
+    */
 
     function calculateLinePoints(startX, startY, endX, endY, points){
         let slope = (endY-startY)/(endX-startX);
@@ -150,6 +146,127 @@ async function icemap() {
     console.log("map window",window)
 
     window.render(0);
+
+    /* New Line Creation for Line Spline*/
+    let vis = svg
+    .on("mousedown", mousedown)
+    .on("mouseup", mouseup)
+    .append('g');
+
+    let line = d3.line()
+        .x(function(d){
+            console.log(d);
+            return d[0];
+        })
+        .y(function(d){
+            return d[1];
+        });
+
+    let points = [[400,400]];
+  
+
+    vis.append("path")
+    .datum(points)
+    .attr("class", "line")
+    .call(redraw);
+
+    //WORK ON LINE DRAWING!!!!!!!// 
+    /*
+    let i = 0;
+    let xPosition = [];
+    let yPosition = [];
+
+    */
+    var dragged = null,
+    selected = points[0];
+
+    d3.select(window)
+        .on("mousemove", mousemove)
+        .on("mouseup", mouseup)
+        .on("keydown", keydown);
+
+    vis.node().focus();
+
+    function redraw() {
+      vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
+
+      console.log('here are the points',points)
+
+      let navPath = document.getElementById('navLine');
+      let totalLength = navPath.getTotalLength();
+      console.log(totalLength);
+
+      console.log('halfway is at',navPath.getPointAtLength(totalLength/2))
+      var circle = vis.selectAll("circle")
+          .data(points);
+
+      circle.enter().append("circle")
+            .attr('class','navCircle')
+          .attr("r", 1e-6)
+          .on("mousedown", function(d) { selected = dragged = d; redraw(); })
+        .transition()
+          .duration(750)
+//          .easeLinear()
+          .attr("r", 6.5)
+          .attr('fill','white');
+
+        circle.exit().remove();
+
+      circle
+          .classed("selectedNav", function(d) { return d === selected; })
+          .attr("cx", function(d) { 
+            if(d){
+                return d[0];
+            }
+             })
+          .attr("cy", function(d) { 
+            if(d){
+                return d[1];
+            } })
+          .attr('fill','#aaa');
+
+
+
+
+      if (d3.event) {
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+      }
+    }
+
+    function mousedown() {
+        console.log(d3.mouse(vis.node()))
+      points.push(selected = dragged = d3.mouse(vis.node()));
+      redraw();
+    }
+
+    function mousemove() {
+      if (!dragged) return;
+      var m = d3.mouse(vis.node());
+      dragged[0] = Math.max(0, Math.min(width, m[0]));
+      dragged[1] = Math.max(0, Math.min(height, m[1]));
+      redraw();
+    }
+
+    function mouseup() {
+      if (!dragged) return;
+      mousemove();
+      dragged = null;
+    }
+
+    function keydown() {
+      if (!selected) return;
+      switch (d3.event.keyCode) {
+        case 8: // backspace
+        case 46: { // delete
+          var i = points.indexOf(selected);
+          points.splice(i, 1);
+          selected = points.length ? points[i > 0 ? i - 1 : 0] : null;
+          redraw();
+          break;
+        }
+      }
+    }
 };
 
 function parseLatLong(key) {

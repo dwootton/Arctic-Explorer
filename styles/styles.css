@@ -59,6 +59,10 @@ footer {
 .selected {
     fill: #003366;
 }
+
+.selectedNav {
+  fill: #f00;
+}
 text {
     font-family:"arial";
 }
