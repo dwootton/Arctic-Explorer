@@ -141,11 +141,8 @@
 
           let circles = ref.selector.selectAll('circle');
 
-          console.log(circles);
-
           circles
             .attr('cx', function(d){
-              console.log("zoomer vs regular", new_xScale(d), ref.currentTimeScale(d));
               return new_xScale(d);
             })
         }
@@ -183,9 +180,7 @@
             .attr("transform","translate(" + this.margin.left+"," + this.margin.top+")");
 
 
-        console.log('HEIGHT AND WIDTH!!!!',this.height,this.width);
         let that = this;
-        console.log("timechart window",window)
         this.map = window;
         this.startDate = new Date(1990,0);
 
@@ -244,7 +239,6 @@
     totalAverages = [].concat.apply([],totalAverages);
 
     this.allAveragedData = this.bindDateToData(totalAverages, this.startDate);
-    console.log(this.allAveragedData);
     this.averagedData = this.allAveragedData;
   } 
 
@@ -320,7 +314,6 @@
               return that.height;
             })
             .attr('fill','blue');
-        console.log(enterCircles);
 
         this.line
           .attr("clip-path", "url(#clip)")
@@ -397,9 +390,7 @@
                 that.updateSlider();
 
              });
-          console.log(this.first);
       } else {  
-        console.log(this.first);      
         this.updateSlider();
 
         let lineSelect = this.line.select("path").datum(this.plottingData);
@@ -476,7 +467,6 @@
 
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
                 that.selectedDate = element.date;
-                console.log(that.selectedDate);
                 that.updateSlider();
                 that.map.render(monthsSinceStart)
              });
@@ -493,13 +483,11 @@
           .attr("clip-path", "url(#clip2)")
           .selectAll('circle')
           .data([this.selectedDate]);
-        console.log(selectorSelect);
           /// TODO: FIGURE OUT WHY THE SELECTOR ISNT TRANSITIONING PROPERLY.!
 
         selectorSelect
           .transition()
           .attr('cx', function(d){
-            console.log('I"m being used!')
               return that.currentTimeScale(that.selectedDate);
             })
             .attr('cy', function(d){
@@ -515,7 +503,6 @@
             .attr('r', 10)
             .transition(750)
             .attr('cx', function(d){
-              console.log(that.currentTimeScale(that.selectedDate))
               return that.currentTimeScale(that.selectedDate);
             })
             .attr('cy', function(d){
@@ -525,12 +512,7 @@
         */
         selectorSelect.exit().remove()
 
-
-        //console.log(newSelector);
-        
       }
-      
-    
 
       //lineSelect//.transition().duration(750)
        // .attr('d',lineGenerator)
@@ -637,9 +619,7 @@
               // myQuery is currently a 
               let myQuery = [new Date(1990,0),new Date(1991,1), new Date(1992,2), new Date(1993,3), new Date(1994,4), new Date(1995,5), new Date(1996,6), new Date(1997,7), new Date(1998,8), new Date(1999,9), new Date(2000,10), new Date(2001,11)]; 
               //let myQuery = this.generateDates(new Date(1990,0), new Date(2017,11))
-              console.log(myQuery);
               let plottingData = that.filterDataFromHeatMap(myQuery,that.plottingData);
-              console.log(that.data);
 
               // Draw the chart
               that.drawChart(plottingData, chart);
@@ -746,12 +726,9 @@
              .on("click", function(element){
                 d3.selectAll("circle").classed("selected", false);
                 d3.select(this).classed("selected", true);
-                console.log((element.date.getYear()*12))
-                console.log(that.startDate)
                 let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
 
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
-                console.log(monthsSinceStart);
                 that.map.render(monthsSinceStart)
              });
 
