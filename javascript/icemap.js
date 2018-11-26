@@ -53,9 +53,24 @@ async function icemap() {
     function mouseup() {
         var m = d3.mouse(this);
         console.log('clicked up!')
+        let linePoints = calculateLinePoints(xPosition[i-1],yPosition[i-1],xPosition[i],yPosition[i],5);
+        console.log(linePoints);
+        
         xPosition[i] = m[0];
         yPosition[i] = m[1];
         vis.on("mousemove", null);
+    }
+
+    function calculateLinePoints(startX, startY, endX, endY, points){
+        let slope = (endY-startY)/(endX-startX);
+        let dx = (endX-startX)/points;
+        let y = startY;
+        points = [];
+        for(let x = startX; x <= endX; x += dx){
+            points.push([x,y]);
+            y += (slope*dx);
+        }
+        return points;
     }
 
 
