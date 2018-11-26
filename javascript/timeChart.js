@@ -27,8 +27,6 @@
 
 
         data.then(function(myData){
-
-
           let data = myData.psijson;
           let plottingData = that.bindDateToData(data, that.startDate)
 
@@ -37,7 +35,7 @@
           that.calculateAverages();
 
           that.concentrationScale = d3.scaleLinear()
-            .domain([0,1])
+            .domain([0,1]) //812200 = 32488*25km
             .range([that.height,0]).nice();
 
           // Sets the scale for the x axis
@@ -172,7 +170,7 @@
             .attr("class", "tooltip")               
             .style("opacity", 0);
 
-        var zoom = d3.zoom().on('zoom', zoomed);
+        var zoom = d3.zoom().scaleExtent([0.25, 4]).on('zoom', zoomed);
 
         that.zoomWindow.call(zoom);
 
@@ -259,6 +257,17 @@
 
       let xExtent = d3.extent(this.plottingData, d => d.date);
       let yExtent = d3.extent(this.plottingData, d => d.data);
+      let circleRadius = 2;
+      let numPoints = this.plottingData.length;
+      console.log(numPoints);
+      
+      if(numPoints < 5){
+        circleRadius = 10;
+      } else if(numPoints < 25){
+        circleRadius = 5;
+      } 
+
+      console.log(circleRadius)
 
       // adjust extents to ensure that the chart renders correctly
       xExtent[0] = new Date(xExtent[0]).setMonth(xExtent[0].getMonth() - 1);
@@ -303,7 +312,7 @@
           let enterCircles = circles
             .enter().append('circle')
             .attr('class','slider')
-            .attr('r', 10)
+            .attr('r', circleRadius)
             .attr('cx', function(d){
               return rescaledTimeScale(d);
             })
@@ -341,7 +350,7 @@
           .data(this.plottingData)
             .enter().append("circle")
             .attr("class", "dot")
-            .attr("r", 5)
+            .attr("r", circleRadius)
             .attr("cx", function(d) {
               return rescaledTimeScale(d.date);
             })
@@ -429,7 +438,7 @@
             .attr("cy", function(d) {
               return rescaledConcentrationScale(d.data);
             })
-            .attr("r", 5)
+            .attr("r", circleRadius)
             .attr("stroke", "white")
             .attr("stroke-width", "2px")
             .style("fill", 'red');
@@ -481,6 +490,7 @@
 
         let that = this;
         let selectorSelect = this.selector
+          .attr("clip-path", "url(#clip2)")
           .selectAll('circle')
           .data([this.selectedDate]);
         console.log(selectorSelect);

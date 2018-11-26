@@ -112,6 +112,7 @@ async function icemap() {
         let latlong = parseLatLong(key);
         return {lat: latlong[0], lon: latlong[1], psi: data[key]};
     });
+    console.log(zippeddata.length)
 
     window.render = m => {
         console.log("beginning render");
