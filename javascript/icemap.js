@@ -115,13 +115,13 @@ async function icemap() {
 
     window.render = m => {
         console.log("beginning render");
+        const t0 = performance.now();	
+
         d3.selectAll('.navigationLine')
             .remove()
         i = 0;
         xPosition = [];
         yPosition = [];
-
-
 
         // render the ice over the map
         let circles = svg.selectAll("circle.gridsquare")
@@ -141,9 +141,10 @@ async function icemap() {
             })
             .attr("r", 2)
             .attr("fill", d => `rgba(255,255,255,${d.psi[m]})`);
-        console.log("ending render");
+
+        const t1 = performance.now();
+        console.log("ending render, took " + (t1 - t0) + " milliseconds");
     };
-    console.log("map window",window)
 
     window.render(0);
 
@@ -155,7 +156,6 @@ async function icemap() {
 
     let line = d3.line()
         .x(function(d){
-            console.log(d);
             return d[0];
         })
         .y(function(d){
@@ -190,11 +190,8 @@ async function icemap() {
     function redraw() {
       vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
 
-      console.log('here are the points',points)
-
       let navPath = document.getElementById('navLine');
       let totalLength = navPath.getTotalLength();
-      console.log(totalLength);
 
       console.log('halfway is at',navPath.getPointAtLength(totalLength/2))
       var circle = vis.selectAll("circle")

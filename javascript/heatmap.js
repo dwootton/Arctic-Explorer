@@ -59,8 +59,6 @@ class Heatmap {
 
         let hasSelection = this.selectedMonths.length !== 0 || this.selectedYears.length !== 0;
 
-        //console.log(years);
-
         let extent = d3.extent(data);
         let scale = d3.scaleSequential(d3.interpolateBlues)
             .domain([extent[1], extent[0]]);
@@ -139,7 +137,6 @@ class Heatmap {
                 dates.push(new Date(currentYear, dateConverter[currentMonth]));
             }
         }
-        console.log(dates);
         this.currentChart.selectData(dates);
 
     }
