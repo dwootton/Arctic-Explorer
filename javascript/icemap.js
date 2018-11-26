@@ -1,3 +1,4 @@
+// For gussian blur: https://bl.ocks.org/mbostock/1342359
 async function icemap() {
     let svg = d3.select("#map svg");
     let width = parseInt(svg.attr("width"));
@@ -11,7 +12,7 @@ async function icemap() {
 
     let projection = d3.geoGringortenQuincuncial()
         .translate([width / 2, height / 2])
-        .scale([620]);
+        .scale([750]);
 
     let path = d3.geoPath()
         .projection(projection);
@@ -27,8 +28,11 @@ async function icemap() {
 
     // Load in GeoJSON data
     let world = await d3.json("data/clipped-simplified.json");
+
     // Bind data and create one path per GeoJSON feature
-    let geojson = topojson.feature(world, world.objects.countries);
+    let geojson = topojson.feature(world, world.objects.countries)
+
+
     let countries = svg.selectAll("path")
         .data(geojson.features)
         .enter()
@@ -93,7 +97,7 @@ async function icemap() {
                 return d.y;
             })
             .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
-            .radius(5); // Set hex radius here, 8 is a good radius
+            .radius(6); // Set hex radius here, 5 is a good radius
 
         let bins = hexGenerator(xyData);
 
@@ -120,19 +124,21 @@ async function icemap() {
             .attr('stroke-opacity',"0.1")
             .attr('fill-opacity','0.7')
             .attr("fill", function(d,i){
+
                 if(!prevColors[i]){
                     prevColors[i] = color(d.mean);
                 }  
                 return prevColors[i];
             })
             .attr('stroke', function(d,i){
+
                 if(!prevColors[i]){
                     prevColors[i] = color(d.mean);
                 }  
                 return prevColors[i];
             })
             .transition()
-            .duration(1000)
+            .duration(2000)
             .attr("fill", function(d,i){
                 prevColors[i] = color(d.mean);
                 return color(d.mean);
@@ -165,6 +171,7 @@ async function icemap() {
             .attr('width',2)
             .attr("fill", d => `rgba(255,255,255,${d.psi[m]})`);
                 */
+
         console.log("ending render");
     };
     console.log("map window",window)
