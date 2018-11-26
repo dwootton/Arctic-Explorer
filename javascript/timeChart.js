@@ -257,16 +257,16 @@
 
       let xExtent = d3.extent(this.plottingData, d => d.date);
       let yExtent = d3.extent(this.plottingData, d => d.data);
-      let circleRadius = 2;
+      let circleRadius = 5;
       let numPoints = this.plottingData.length;
       console.log(numPoints);
-      
+      /*
       if(numPoints < 5){
         circleRadius = 10;
       } else if(numPoints < 25){
         circleRadius = 5;
       } 
-
+`     */
       console.log(circleRadius)
 
       // adjust extents to ensure that the chart renders correctly
