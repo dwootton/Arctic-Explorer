@@ -8,6 +8,11 @@ line {
     stroke-linecap: round;
 }
 /*
+.hexagon path {
+  -webkit-transition: fill 2000ms linear;
+  transition: fill 2000ms linear;
+}
+
 #container {
     width: 100%;
     height: 100%;

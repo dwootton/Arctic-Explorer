@@ -488,6 +488,7 @@
 
         selectorSelect
           .transition()
+          .duration(1250)
           .attr('cx', function(d){
             console.log('I"m being used!')
               return that.currentTimeScale(that.selectedDate);

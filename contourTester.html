@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-hsv.v0.1.min.js"></script>
+<script src="https://d3js.org/d3-contour.v1.min.js"></script>
+	<title></title>
+	  <svg width="960" height="673" stroke="#fff" stroke-width="0.5"></svg>
+
+</head>
+<body>
+	<script> 
+	var i0 = d3.interpolateHsvLong(d3.hsv(120, 1, 0.65), d3.hsv(60, 1, 0.90)),
+    i1 = d3.interpolateHsvLong(d3.hsv(60, 1, 0.90), d3.hsv(0, 0, 0.95)),
+    interpolateTerrain = function(t) { return t < 0.5 ? i0(t * 2) : i1((t - 0.5) * 2); },
+    color = d3.scaleSequential(interpolateTerrain).domain([0, 15]);
+d3.json("javascript/contourData.json", function(error, ct) {
+  if (error) throw error;
+	ct = ct.psijson;
+	  let [min,max] = [0,1]
+	  let width = 448;
+	  let height = 304;
+	  console.log('start contour')
+	  let polygon = d3.contours()
+	        .size([width, height])
+	        .thresholds(d3.range(0, 1, 0.05))
+	      (ct)
+	console.log('stop contour')
+	  var svg = d3.select("svg"),
+	    svgWidth = +svg.attr("width");
+	  
+
+	svg.selectAll("path")
+	    .data(polygon)
+	    .enter().append("path")
+	      .attr("d", d3.geoPath(d3.geoIdentity().scale(svgWidth / width)))
+	      .attr("fill", function(d) { return color(d.value); });
+
+})
+	</script>
+</body>
+</html>

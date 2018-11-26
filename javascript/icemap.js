@@ -1,64 +1,5 @@
-
-
-
 async function icemap() {
     let svg = d3.select("#map svg");
-
-    let vis = svg
-    .on("mousedown", mousedown)
-    .on("mouseup", mouseup);
-
-    let line;
-    //WORK ON LINE DRAWING!!!!!!!// 
-    let i = 0;
-    let xPosition = [];
-    let yPosition = [];
-
-    function mousedown() {
-        console.log('clicked down!')
-        let m = d3.mouse(this);
-        xPosition.push(m[0]);
-        yPosition.push(m[1]);
-
-        if(i >= 1){
-            line = vis.append("line").attr('class','navigationLine')
-            .attr("x1", xPosition[i])
-            .attr("y1", yPosition[i])
-            .attr("x2", xPosition[i])
-            .attr("y2", yPosition[i]);
-
-        } else {
-            line = vis.append("line").attr('class','navigationLine')
-            .attr("x1", m[0])
-            .attr("y1", m[1])
-            .attr("x2", m[0])
-            .attr("y2", m[1]);
-        }
-        i++;
-        
-        
-        vis.on("mousemove", mousemove);
-    }
-
-    function mousemove() {
-        var m = d3.mouse(this);
-
-        line.attr("x2", m[0])
-            .attr("y2", m[1]);
-
-        xPosition[i] = m[0];
-        yPosition[i] = m[1];
-    }
-
-    function mouseup() {
-        var m = d3.mouse(this);
-        console.log('clicked up!')
-        xPosition[i] = m[0];
-        yPosition[i] = m[1];
-        vis.on("mousemove", null);
-    }
-
-
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
 
@@ -88,7 +29,7 @@ async function icemap() {
     let world = await d3.json("data/clipped-simplified.json");
     // Bind data and create one path per GeoJSON feature
     let geojson = topojson.feature(world, world.objects.countries);
-    svg.selectAll("path")
+    let countries = svg.selectAll("path")
         .data(geojson.features)
         .enter()
         .append("path")
@@ -96,45 +37,132 @@ async function icemap() {
         .attr("d", d => path(d.geometry))
         .attr("fill", "#D2B48C");
 
+    svg.append("defs")
+          .append("filter")
+            .attr("id", "blur")
+          .append("feGaussianBlur")
+            .attr("stdDeviation", 1);
+
+    //countries.attr("filter", "url(#blur)");
+
+
     let data = (await d3.json("data/lat_long_data.json")).positions;
     let zippeddata = Object.keys(data).map(key => {
         let latlong = parseLatLong(key);
         return {lat: latlong[0], lon: latlong[1], psi: data[key]};
     });
+     let xs = [];
+     let ys = [];
+     let vals = [];
+
+     let hexLayer = svg.append('g');
+
+
+    //hexLayer.attr("filter", "url(#blur)");
+     
+
+
+    let margin = {left : 10,
+                  right : 10,
+                  bottom : 10,
+                  top : 10};
+
+    
+
+    let color = d3.scaleLinear()
+        .range(["#0C3169", '#fff'])
+        .domain([0, 1]);
+
 
     window.render = m => {
+
         console.log("beginning render");
-        d3.selectAll('.navigationLine')
-            .remove()
-        i = 0;
-        xPosition = [];
-        yPosition = [];
+        let xyData = Object.keys(data).map(key => {
+            let latlong = parseLatLong(key);
+            return {x:projection([latlong[1], latlong[0]])[0],
+                    y:projection([latlong[1], latlong[0]])[1],
+                    val: data[key][m]};
+        });
+
+        let hexGenerator = d3.hexbin(xyData)
+            .x(function(d){
+                return d.x;
+            })
+            .y(function(d){
+                return d.y;
+            })
+            .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+            .radius(5); // Set hex radius here, 8 is a good radius
+
+        let bins = hexGenerator(xyData);
+
+        bins.forEach(function(d) {
+            d.min = d3.min(d, function(p) { 
+                return p.val; });
+            d.max = d3.max(d, function(p) { return p.val; });
+            d.mean = d3.mean(d, function(p) { return p.val; });
+          });
+
+        hexLayer.selectAll('g').remove();
+
+        let hex = hexLayer.append('g').selectAll("path")
+          .data(bins);
 
 
+        hex.exit().remove();
 
+        let newHex = hex
+          .enter().append("path")
+            .attr('class', 'hexagon')
+            .attr("d", function(d) { return "M" + d.x + "," + d.y + hexGenerator.hexagon(); })
+            /*
+            .attr("fill", function(d,i){
+                let vals = d.map( function(element){
+                    return element.val;
+                })
+                let sum = 0;
+                sum = vals.reduce(function(a, b) { return a + b; });
+                avg[i] = sum / vals.length;
+                
+                return color(d.min);
+            }) */
+            .attr("fill", function(d,i){  
+                return color(d.mean);
+            })
+            .attr('fill-opacity',"0.8")
+            .attr('stroke', function(d,i){
+                return color(d.mean);
+            })
+            .attr('stroke-width','1px')
+            .attr('stroke-opacity',"0.1");
+        /*
         // render the ice over the map
-        let circles = svg.selectAll("circle.gridsquare")
-            .data(zippeddata/*.filter(d => d.psi[m] !== 0)*/);
-        circles.exit().remove();
-        circles
+        let rects = svg.selectAll("rect.gridsquare")
+            .data(zippeddata);
+
+
+        rects.exit().remove();
+        rects
             .enter()
-            .append("circle")
+            .append("rect")
             .attr("class", "gridsquare")
-            .merge(circles)
-            .transition('750')
-            .attr("cx", function (d) {
+            .merge(rects)
+            .transition(30000)
+            .attr("x", function (d) {
                 return projection([d.lon, d.lat])[0];
             })
-            .attr("cy", function (d) {
+            .attr("y", function (d) {
                 return projection([d.lon, d.lat])[1];
             })
-            .attr("r", 2)
+            .attr("height",2)
+            .attr('width',2)
             .attr("fill", d => `rgba(255,255,255,${d.psi[m]})`);
+                */
         console.log("ending render");
     };
     console.log("map window",window)
 
-    window.render(0);
+    window.render(8);
 };
 
 function parseLatLong(key) {
