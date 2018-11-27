@@ -161,8 +161,8 @@ async function icemap() {
                 prevColors[i] = color(d.mean);
                 return color(d.mean);
             })
-            
-        console.log("ending render");
+        const t1 = performance.now()
+        console.log("ending render: your time was", t1-t0);
     };
 
     window.render(0);
@@ -218,7 +218,6 @@ async function icemap() {
       let navPath = document.getElementById('navLine');
       let totalLength = navPath.getTotalLength();
 
-      console.log('halfway is at',navPath.getPointAtLength(totalLength/2))
       var circle = vis.selectAll("circle")
           .data(points);
 
@@ -257,7 +256,7 @@ async function icemap() {
     }
     /* Event Code */
     function mousedown() {
-        console.log(d3.mouse(vis.node()))
+      d3.mouse(vis.node())
       points.push(selected = dragged = d3.mouse(vis.node()));
       redraw();
     }

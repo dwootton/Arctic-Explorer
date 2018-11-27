@@ -253,15 +253,13 @@
       let yExtent = d3.extent(this.plottingData, d => d.data);
       let circleRadius = 5;
       let numPoints = this.plottingData.length;
-      console.log(numPoints);
-      /*
+      /* Circle Radius Adjustment: Problem- it results in uneven circles as they render at different times/ Fix with merge?
       if(numPoints < 5){
         circleRadius = 10;
       } else if(numPoints < 25){
         circleRadius = 5;
       } 
 `     */
-      console.log(circleRadius)
 
       // adjust extents to ensure that the chart renders correctly
       xExtent[0] = new Date(xExtent[0]).setMonth(xExtent[0].getMonth() - 1);
@@ -494,72 +492,15 @@
             .attr('cy', function(d){
               return that.height;
             })
+          .attr('r',6)
           .attr("stroke", "white")
           .attr("stroke-width", "2px")
-          .style("fill", 'purple');
-          /*
-        let newSelector = selectorSelect.enter()
-          .append('circle')
-            .attr('class','slider')
-            .attr('r', 10)
-            .transition(750)
-            .attr('cx', function(d){
-              return that.currentTimeScale(that.selectedDate);
-            })
-            .attr('cy', function(d){
-              return that.height;
-            })
-            .attr('fill','red');
-        */
+          .style("fill", 'red');
+
         selectorSelect.exit().remove()
 
       }
 
-      //lineSelect//.transition().duration(750)
-       // .attr('d',lineGenerator)
-
-      //Update all circles
-      /*
-      let scatterSelect = this.dot.selectAll("circle").data(this.plottingData);
-      
-      scatterSelect.transition()
-        .duration(750)
-        .attr("cx", function(d) {
-          return new_xScale(d.);
-        })
-        .attr("cy", function(d) {
-          return new_yScale(d.y);
-        })
-        .attr("stroke", "white")
-        .attr("stroke-width", "2px")
-        .style("fill", function() {
-          return d.color = color(d.key);
-         });
-
-      //Enter new circles
-      scatterSelect.enter()
-        .append("circle")
-          .attr("cx", function(d) {
-            return new_xScale(d.x);
-          })
-          .attr("cy", function(d) {
-            return new_yScale(d.y);
-          })
-          .attr("r", 5)
-          .attr("stroke", "white")
-          .attr("stroke-width", "2px")
-          .style("fill", function() {
-            return d.color = color(d.key);
-          })
-          .on("click", function(d,i) {
-            let s = d3.select(this);
-            remove(s,i, d.name);
-          });
-
-      // Remove old
-      scatterSelect.exit().remove()
-      */
-    
     
 
      filterDataToQuery(query,allData) {
@@ -576,12 +517,7 @@
         }
         return returnData;
      };
-/*
-     selectData(){
-        this.plottingData = newData;
-        timeChart();
-     }
-  */
+
   
      bindDateToData(data,startDate){
         let returnData = [];
@@ -608,190 +544,8 @@
       
       this.averageData = this.selectAverage(dates);
       this.update();
-//      this.updateSlider()
     }
 
-/*
-    timeChart() {
-        let chart = this.chart;
-        let that = this;
-
-              // Process the Data
-              // myQuery is currently a 
-              let myQuery = [new Date(1990,0),new Date(1991,1), new Date(1992,2), new Date(1993,3), new Date(1994,4), new Date(1995,5), new Date(1996,6), new Date(1997,7), new Date(1998,8), new Date(1999,9), new Date(2000,10), new Date(2001,11)]; 
-              //let myQuery = this.generateDates(new Date(1990,0), new Date(2017,11))
-              let plottingData = that.filterDataFromHeatMap(myQuery,that.plottingData);
-
-              // Draw the chart
-              that.drawChart(plottingData, chart);
-
-              // Append the title
-              chart.append("text")
-                  .attr("x", (that.width + that.margin.left - that.margin.right) / 2)          
-                  .attr("y", 0 - (that.margin.top / 4))
-                  .attr("text-anchor", "middle")  
-                  .style("font-size", "16px") 
-                  .text("Average Sea Ice Concentration");
-      }
-
-    drawChart(data, chart){
-        let svg = d3.select('#chart svg');
-        let width = parseInt(svg.attr("width"));
-        let height = parseInt(svg.attr("height"));
-        let margin = {top: 20, right: 30, bottom: 100, left: 50};
-        let drawDuration = 1000;
-
-        let dataMax = d3.max(data, d => d.data);
-
-        // Sets the scale for the y axis
-        let concentrationScale = d3.scaleLinear()
-            .domain([0,dataMax+.1])
-            .range([height-margin.bottom, margin.top]);
-
-        // Sets the scale for the x axis
-        let timeScale = d3.scaleTime()
-          .domain(d3.extent(data, function(d) { 
-            return d.date; 
-          }))
-          .range([0, width-margin.right-margin.left]); 
-
-        let chartData = chart.data(data);
-
-        // Remove older elements
-        chartData.exit().remove();
-
-        // Creates line generator function for the path
-        let lineGenerator = d3.line()
-            .x((d, i) => timeScale(d.date))
-            .y((d) => concentrationScale(d.data))
-            .curve(d3.curveMonotoneX);
-
-        
-
-        // Append the path 
-        let path = chart.append("path")
-            .datum(data)
-            .attr("class", "line")
-            .attr("d",lineGenerator);
-
-        // Add the circles and draw animation
-        chart.append('g')
-            .selectAll(".dot")
-            .data(data)
-          .enter().append("circle") // Uses the enter().append() method
-            .attr("class", "dot") // Assign a class for styling
-            .attr("cx", function(d, i) { return timeScale(d.date) })
-            .attr("cy", function(d) { return concentrationScale(d.data) })
-            .attr("r", 0);
-
-        // Append div for useage with the tool tip
-        let div = d3.select("body").append("div")   
-            .attr("class", "tooltip")               
-            .style("opacity", 0);
-
-        // Sets up tool tip information 
-        let circleDelay = (1.0*drawDuration)/data.length;
-        let monthNames = ["Jan", "Feb", "Mar", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
-        d3.selectAll("circle")
-            .transition()
-            .delay(function(d,i){return i*circleDelay})
-            .duration(100) 
-            .attr("r", function(d,i){return 4})
-        let toolTipAppearDuration = 200;
-        let toolTipDisappearDuration = 400;
-        let that = this;
-        // Appends functionality
-        let chartCircles = d3.selectAll("circle");
-
-        // Creates tool tip
-        chartCircles
-            .on("mouseover", function(d) {
-               div.transition()
-                 .duration(toolTipAppearDuration)
-                 .style("opacity", .7);
-               div.html(monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
-                 .style("top", d3.event.pageY - 70 + "px")
-                 .style("left", d3.event.pageX - 30 + "px");
-               })
-
-        // Handles tool tip
-        chartCircles
-             .on("mouseout", function(d) {
-               div.transition()
-                 .duration(toolTipDisappearDuration)
-                 .style("opacity", 0);
-               })
-
-        // Handels point selection
-        chartCircles
-             .on("click", function(element){
-                d3.selectAll("circle").classed("selected", false);
-                d3.select(this).classed("selected", true);
-                let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
-
-                monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
-                that.map.render(monthsSinceStart)
-             });
-
-        // Add animations to the chart
-        let totalLength = path.node().getTotalLength();
-
-        // Set Properties of Dash Array and Dash Offset and initiate Transition
-        path
-            .attr("stroke-dasharray", totalLength + " " + totalLength)
-            .attr("stroke-dashoffset", totalLength)
-          .transition() 
-            .delay(100)
-            .duration(drawDuration) 
-            .ease(d3.easeLinear) 
-            .attr("stroke-dashoffset", 0);
-
-        this.appendLabels();
-    }
-
-    appendLabels(){
-      // Append x axis
-        this.chart.append("g")
-            .attr("class", "x axis")
-            //.attr("transform", "translate(0," + (height-margin.bottom) + ")")
-            .call(d3.axisBottom(timeScale)); // Create an axis component with d3.axisBottom
-
-        // Append y axis
-        this.chart.append("g")
-            .attr("class", "y axis")
-            .call(d3.axisLeft(concentrationScale)); // Create an axis component with d3.axisLeft
-
-      // Add Y Label
-        this.chart.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 0 - this.margin.left)
-            //.attr("x",0 - ((this.height-this.margin.bottom)/ 2))
-            .attr("dy", "1em")
-            .style("text-anchor", "middle")
-            .text("Sea Ice Concentration");
-
-        // Add X Label
-        this.chart.append("text")
-            //.attr("y", this.height - (this.margin.bottom + this.margin.top)/1.5)
-            .attr("x", (this.width - this.margin.right)/2)
-            .attr("dy", "1em")
-            .style("text-anchor", "middle")
-            .text("Date");
-    }
-
-    generateDates(start,end){
-      let current = start;
-      let returnDates = []
-      while(current < end){
-        if((current.getMonth()+1)%9 == 0){
-          returnDates.push(new Date(current));
-        }
-        
-        current.setMonth(current.getMonth() + 1);
-      }
-      return returnDates;
-    }
-  */
 }
 
 
