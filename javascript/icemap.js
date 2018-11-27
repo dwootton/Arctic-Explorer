@@ -1,63 +1,8 @@
 
 // Spline drawing from: https://bl.ocks.org/mbostock/4342190
+// For gussian blur: https://bl.ocks.org/mbostock/1342359
 
-async function icemap() {
-    let svg = d3.select("#map svg");
-
-    
-
-
-    /* Old Line creation:
-
-    function mousedown() {
-        console.log('clicked down!')
-        let m = d3.mouse(this);
-        xPosition.push(m[0]);
-        yPosition.push(m[1]);
-
-        if(i >= 1){
-            line = vis.append("line").attr('class','navigationLine')
-            .attr("x1", xPosition[i])
-            .attr("y1", yPosition[i])
-            .attr("x2", xPosition[i])
-            .attr("y2", yPosition[i]);
-
-        } else {
-            line = vis.append("line").attr('class','navigationLine')
-            .attr("x1", m[0])
-            .attr("y1", m[1])
-            .attr("x2", m[0])
-            .attr("y2", m[1]);
-        }
-        i++;
-        
-        
-        vis.on("mousemove", mousemove);
-    }
-
-    function mousemove() {
-        var m = d3.mouse(this);
-
-        line.attr("x2", m[0])
-            .attr("y2", m[1]);
-
-        xPosition[i] = m[0];
-        yPosition[i] = m[1];
-    }
-
-    function mouseup() {
-        var m = d3.mouse(this);
-        console.log('clicked up!')
-        let linePoints = calculateLinePoints(xPosition[i-1],yPosition[i-1],xPosition[i],yPosition[i],5);
-        console.log(linePoints);
-
-        xPosition[i] = m[0];
-        yPosition[i] = m[1];
-        vis.on("mousemove", null);
-    }
-    */
-
-    function calculateLinePoints(startX, startY, endX, endY, points){
+function calculateLinePoints(startX, startY, endX, endY, points){
         let slope = (endY-startY)/(endX-startX);
         let dx = (endX-startX)/points;
         let y = startY;
@@ -69,7 +14,8 @@ async function icemap() {
         return points;
     }
 
-
+async function icemap() {
+    let svg = d3.select("#map svg");
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
 
@@ -78,13 +24,14 @@ async function icemap() {
 
     // ocean is ice-free
     svg.style("background-color", scale(0));
-
+    let hexLayer = svg.append('g');   
     let projection = d3.geoGringortenQuincuncial()
         .translate([width / 2, height / 2])
-        .scale([620]);
+        .scale([750]);
 
     let path = d3.geoPath()
         .projection(projection);
+
 
 	svg
         .append("path")
@@ -97,9 +44,12 @@ async function icemap() {
 
     // Load in GeoJSON data
     let world = await d3.json("data/clipped-simplified.json");
+
     // Bind data and create one path per GeoJSON feature
-    let geojson = topojson.feature(world, world.objects.countries);
-    svg.selectAll("path")
+    let geojson = topojson.feature(world, world.objects.countries)
+
+
+    let countries = svg.selectAll("path")
         .data(geojson.features)
         .enter()
         .append("path")
@@ -107,50 +57,124 @@ async function icemap() {
         .attr("d", d => path(d.geometry))
         .attr("fill", "#D2B48C");
 
+    svg.append("defs")
+          .append("filter")
+            .attr("id", "blur")
+          .append("feGaussianBlur")
+            .attr("stdDeviation", 1);
+
+    //countries.attr("filter", "url(#blur)");
+
+
     let data = (await d3.json("data/lat_long_data.json")).positions;
     let zippeddata = Object.keys(data).map(key => {
         let latlong = parseLatLong(key);
         return {lat: latlong[0], lon: latlong[1], psi: data[key]};
     });
-    console.log(zippeddata.length)
+
+    // Hex 
+       
+
+
+    let margin = {left : 10,
+                  right : 10,
+                  bottom : 10,
+                  top : 10};
+
+    
+    let color = d3.scaleLinear()
+        .range(["#0C3169", '#fff'])
+        .domain([0, 1]);
+
+    let prevColors = [];
 
     window.render = m => {
+
         console.log("beginning render");
         const t0 = performance.now();	
 
         d3.selectAll('.navigationLine')
             .remove()
-        i = 0;
-        xPosition = [];
-        yPosition = [];
 
-        // render the ice over the map
-        let circles = svg.selectAll("circle.gridsquare")
-            .data(zippeddata/*.filter(d => d.psi[m] !== 0)*/);
-        circles.exit().remove();
-        circles
-            .enter()
-            .append("circle")
-            .attr("class", "gridsquare")
-            .merge(circles)
-            .transition('750')
-            .attr("cx", function (d) {
-                return projection([d.lon, d.lat])[0];
-            })
-            .attr("cy", function (d) {
-                return projection([d.lon, d.lat])[1];
-            })
-            .attr("r", 2)
-            .attr("fill", d => `rgba(255,255,255,${d.psi[m]})`);
+        let xyData = Object.keys(data).map(key => {
+            let latlong = parseLatLong(key);
+            return {x:projection([latlong[1], latlong[0]])[0],
+                    y:projection([latlong[1], latlong[0]])[1],
+                    val: data[key][m]};
+        });
 
-        const t1 = performance.now();
-        console.log("ending render, took " + (t1 - t0) + " milliseconds");
+        let hexGenerator = d3.hexbin(xyData)
+            .x(function(d){
+                return d.x;
+            })
+            .y(function(d){
+                return d.y;
+            })
+            .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+            .radius(5); // Set hex radius here, 5 is a good radius
+
+        let bins = hexGenerator(xyData);
+
+        bins.forEach(function(d) {
+            d.min = d3.min(d, function(p) { 
+                return p.val; });
+            d.max = d3.max(d, function(p) { return p.val; });
+            d.mean = d3.mean(d, function(p) { return p.val; });
+          });
+
+        hexLayer.selectAll('g').remove();
+
+        let hex = hexLayer.append('g').selectAll("path")
+          .data(bins);
+
+
+        hex.exit().remove();
+
+        let newHex = hex
+          .enter().append("path")
+            .attr('class', 'hexagon')
+            .attr("d", function(d) { return "M" + d.x + "," + d.y + hexGenerator.hexagon(); })
+            .attr('stroke-width','1px')
+            .attr('stroke-opacity',"1.0")
+            .attr('fill-opacity','1.0')
+            .attr("fill", function(d,i){
+
+                if(!prevColors[i]){
+                    prevColors[i] = color(d.mean);
+                }  
+                return prevColors[i];
+            })
+            .attr('stroke', function(d,i){
+
+                if(!prevColors[i]){
+                    prevColors[i] = color(d.mean);
+                }  
+                return prevColors[i];
+            })
+            .transition()
+            .duration(800)
+            .attr("fill", function(d,i){
+                prevColors[i] = color(d.mean);
+                return color(d.mean);
+            })
+            .attr('stroke', function(d,i){
+                prevColors[i] = color(d.mean);
+                return color(d.mean);
+            })
+            
+        console.log("ending render");
     };
 
     window.render(0);
+    drawSpline(svg)
+}
+    
+    function drawSpline(svg){
 
-    /* New Line Creation for Line Spline*/
-    let vis = svg
+    let width = parseInt(svg.attr("width"));
+    let height = parseInt(svg.attr("height"));
+
+        let vis = svg
     .on("mousedown", mousedown)
     .on("mouseup", mouseup)
     .append('g');
@@ -231,7 +255,7 @@ async function icemap() {
         d3.event.stopPropagation();
       }
     }
-
+    /* Event Code */
     function mousedown() {
         console.log(d3.mouse(vis.node()))
       points.push(selected = dragged = d3.mouse(vis.node()));
@@ -265,7 +289,12 @@ async function icemap() {
         }
       }
     }
-};
+    }
+    /* New Line Creation for Line Spline*/
+    
+
+
+    
 
 function parseLatLong(key) {
     let halves = key.split("x");

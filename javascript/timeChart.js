@@ -487,6 +487,7 @@
 
         selectorSelect
           .transition()
+          .duration(1250)
           .attr('cx', function(d){
               return that.currentTimeScale(that.selectedDate);
             })
