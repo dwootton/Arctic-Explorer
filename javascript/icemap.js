@@ -81,11 +81,7 @@ async function icemap() {
                   bottom : 10,
                   top : 10};
 
-    
-    let color = d3.scaleLinear()
-        .range(["#0C3169", '#fff'])
-        .domain([0, 1]);
-
+    // stores the previous colors of the hexagons to allow for transitions
     let prevColors = [];
 
     window.render = m => {
@@ -98,11 +94,22 @@ async function icemap() {
 
         let xyData = Object.keys(data).map(key => {
             let latlong = parseLatLong(key);
+            let value = 0;
+            if(typeof data[key][m] === "number"){
+                value = data[key][m];
+            }
             return {x:projection([latlong[1], latlong[0]])[0],
                     y:projection([latlong[1], latlong[0]])[1],
-                    val: data[key][m]};
+                    val: value};
         });
+        // Data to add
+        console.log(xyData);
+        let addedData = fixHoleInIce();
+        
+        
 
+
+        xyData = xyData.concat(addedData);
         let hexGenerator = d3.hexbin(xyData)
             .x(function(d){
                 return d.x;
@@ -117,9 +124,24 @@ async function icemap() {
 
         bins.forEach(function(d) {
             d.min = d3.min(d, function(p) { 
-                return p.val; });
-            d.max = d3.max(d, function(p) { return p.val; });
-            d.mean = d3.mean(d, function(p) { return p.val; });
+                if(typeof p.val ==="number"){
+                    return p.val;
+                }
+                return 0;
+                });
+            d.max = d3.max(d, function(p) {
+                if(typeof p.val ==="number"){
+                    return p.val;
+                }
+                return 0;
+                
+            });
+            d.mean = d3.mean(d, function(p) { 
+                if(typeof p.val ==="number"){
+                    return p.val;
+                }
+                return 0;
+                });
           });
 
         hexLayer.selectAll('g').remove();
@@ -140,26 +162,26 @@ async function icemap() {
             .attr("fill", function(d,i){
 
                 if(!prevColors[i]){
-                    prevColors[i] = color(d.mean);
+                    prevColors[i] = scale(d.mean);
                 }  
                 return prevColors[i];
             })
             .attr('stroke', function(d,i){
 
                 if(!prevColors[i]){
-                    prevColors[i] = color(d.mean);
+                    prevColors[i] = scale(d.mean);
                 }  
                 return prevColors[i];
             })
             .transition()
             .duration(800)
             .attr("fill", function(d,i){
-                prevColors[i] = color(d.mean);
-                return color(d.mean);
+                prevColors[i] = scale(d.mean);
+                return scale(d.mean);
             })
             .attr('stroke', function(d,i){
-                prevColors[i] = color(d.mean);
-                return color(d.mean);
+                prevColors[i] = scale(d.mean);
+                return scale(d.mean);
             })
         const t1 = performance.now()
         console.log("ending render: your time was", t1-t0);
@@ -168,8 +190,23 @@ async function icemap() {
     window.render(0);
     drawSpline(svg)
 }
-    
-    function drawSpline(svg){
+/* Used to fill the hole in the ice by creating a square patch*/
+function fixHoleInIce(){
+            let returnData =[];
+            for(let xIndex = 370.0; xIndex <435.0; xIndex+=2){
+                for(let yIndex = 295; yIndex <360; yIndex+=2){
+                    let pt = {
+                        x:xIndex,
+                        y:yIndex,
+                        val:2.0
+                    };
+                returnData.push(pt)
+                }
+            }
+            return returnData;
+        }
+/* New Line Creation for Line Spline*/
+function drawSpline(svg){
 
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
@@ -237,16 +274,17 @@ async function icemap() {
           .classed("selectedNav", function(d) { return d === selected; })
           .attr("cx", function(d) { 
             if(d){
+                console.log('x:',d[0])
                 return d[0];
             }
              })
           .attr("cy", function(d) { 
             if(d){
+                console.log('y:',d[1])
                 return d[1];
             } })
           .attr('fill','#aaa');
-
-
+          
 
 
       if (d3.event) {
@@ -288,8 +326,7 @@ async function icemap() {
         }
       }
     }
-    }
-    /* New Line Creation for Line Spline*/
+}
     
 
 
