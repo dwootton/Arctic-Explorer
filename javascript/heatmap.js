@@ -43,6 +43,12 @@ class Heatmap {
     render() {
         let data = this.psidata.slice(); // shallow copy
 
+        let extent = d3.extent(data);
+        let scale = d3.scaleSequential(d3.interpolateBlues)
+            .domain([extent[1], extent[0]]);
+        let greyscale = d3.scaleSequential(d3.interpolateGreys)
+            .domain([extent[1], extent[0]]);
+
         let years = [];
         for (let i = this.startYear; i < this.endYear; i++) {
             let slice = data.splice(0, 12);
@@ -58,12 +64,6 @@ class Heatmap {
         }
 
         let hasSelection = this.selectedMonths.length !== 0 || this.selectedYears.length !== 0;
-
-        let extent = d3.extent(data);
-        let scale = d3.scaleSequential(d3.interpolateBlues)
-            .domain([extent[1], extent[0]]);
-        let greyscale = d3.scaleSequential(d3.interpolateGreys)
-            .domain([extent[1], extent[0]]);
 
         this.table.classed("hasSelection", hasSelection);
 
