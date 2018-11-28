@@ -239,13 +239,27 @@ function drawLineHeatMap(allData){
 
     let query = [new Date(1990,3), new Date(1990,6), new Date(1990,8)]
     let selectedData = filterDataToQuery(query,allData);
-
-    console.log(selectedData);
+    let groupedSelectedData = groupData(query,selectedData);
+    console.log(groupedSelectedData);
     // Currently data is not grouped by point. Group by point and then visualize array as heatmap
 
 
 
 
+}
+
+function groupData(query,selectedData){
+    let counter = 0;
+    let groupedArray = [];
+    while(counter < selectedData.length){
+        let newArr = [];
+        for(let i = 0; i < query.length; i++){
+            newArr.push(selectedData[counter])
+            counter++;
+        }
+        groupedArray.push(newArr)
+    }
+    return groupedArray;
 }
 
 function bindDateToData(fullData,startDate){
