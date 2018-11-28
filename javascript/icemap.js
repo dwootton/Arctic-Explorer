@@ -2,18 +2,6 @@
 // Spline drawing from: https://bl.ocks.org/mbostock/4342190
 // For gussian blur: https://bl.ocks.org/mbostock/1342359
 
-function calculateLinePoints(startX, startY, endX, endY, points){
-        let slope = (endY-startY)/(endX-startX);
-        let dx = (endX-startX)/points;
-        let y = startY;
-        points = [];
-        for(let x = startX; x <= endX; x += dx){
-            points.push([x,y]);
-            y += (slope*dx);
-        }
-        return points;
-    }
-
 
 let fixedData;
 async function icemap() {
@@ -229,18 +217,76 @@ function grabAllData(elements){
                 return point.x === element.x && point.y === element.y;
             })
             foundData.push(foundElement);
-        } else {
-
+        } else { // the element corresponds to a area 
             let oceanElement = {
                 val: Array.apply(null, Array(336)).map(Number.prototype.valueOf,0)
             }
             foundData.push(oceanElement);
+        }        
+    }
+    drawLineHeatMap(foundData);
+    console.log(foundData);
+    // next steps, plot all points. 
+    // plot along path 
+}
+
+function drawLineHeatMap(allData){
+    let svg = d3.select('#lineMap').append('svg')
+    for(let i = 0; i < allData.length; i++){
+        allData[i].val = bindDateToData(allData[i], new Date(1990,0));
+    }
+    console.log(allData);
+
+    let query = [new Date(1990,3), new Date(1990,6), new Date(1990,8)]
+    let selectedData = filterDataToQuery(query,allData);
+
+    console.log(selectedData);
+    // Currently data is not grouped by point. Group by point and then visualize array as heatmap
+
+
+
+
+}
+
+function bindDateToData(fullData,startDate){
+        let data = fullData.val;
+        let returnData = [];
+        let currentDate = new Date(startDate);
+
+        // add data and date to the return array.
+        for(let i = 0; i < data.length; i++){
+            returnData.push({
+                'x': fullData.x,
+                'y': fullData.y,
+                'data': data[i],
+                'date': new Date(currentDate)}
+            );
+            currentDate.setMonth(currentDate.getMonth() + 1);
         }
 
-        
+        return returnData;
     }
-    console.log(foundData);
-}
+function filterDataToQuery(query,allData) {
+        let returnData = [];
+        let counter = 0;
+        console.log('query:', query);
+
+        for(let i = 0; i < allData.length; i++){
+            console.log(allData[i]);
+            for(let innerCounter = 0; innerCounter < allData[i].val.length; innerCounter++){
+                //console.log('inner data',allData[i].val[innerCounter]);
+                let inArray = !!query.find(item => {return item.getTime() == allData[i].val[innerCounter].date.getTime()});
+
+                if(inArray){
+
+                    returnData.push(allData[i].val[innerCounter]);
+                }
+            }
+            
+        }
+        return returnData;
+     };
+
 /* New Line Creation for Line Spline*/
 function drawSpline(svg, bins){
 
