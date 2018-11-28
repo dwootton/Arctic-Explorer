@@ -14,6 +14,8 @@ function calculateLinePoints(startX, startY, endX, endY, points){
         return points;
     }
 
+
+let fixedData;
 async function icemap() {
     let svg = d3.select("#map svg");
     let width = parseInt(svg.attr("width"));
@@ -67,13 +69,22 @@ async function icemap() {
 
 
     let data = (await d3.json("data/lat_long_data.json")).positions;
+
     let zippeddata = Object.keys(data).map(key => {
         let latlong = parseLatLong(key);
         return {lat: latlong[0], lon: latlong[1], psi: data[key]};
     });
 
+    let psiLength = zippeddata[0].psi.length;
+
     // Hex 
-       
+    fixedData = Object.keys(data).map(key => {
+            let latlong = parseLatLong(key);
+
+            return {x:projection([latlong[1], latlong[0]])[0],
+                    y:projection([latlong[1], latlong[0]])[1],
+                    val: data[key]};
+        });
 
 
     let margin = {left : 10,
@@ -83,6 +94,7 @@ async function icemap() {
 
     // stores the previous colors of the hexagons to allow for transitions
     let prevColors = [];
+    let bins;
 
     window.render = m => {
 
@@ -120,7 +132,7 @@ async function icemap() {
             .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
             .radius(5); // Set hex radius here, 5 is a good radius
 
-        let bins = hexGenerator(xyData);
+        bins = hexGenerator(xyData);
 
         bins.forEach(function(d) {
             d.min = d3.min(d, function(p) { 
@@ -143,6 +155,7 @@ async function icemap() {
                 return 0;
                 });
           });
+        console.log(bins);
 
         hexLayer.selectAll('g').remove();
 
@@ -188,10 +201,10 @@ async function icemap() {
     };
 
     window.render(0);
-    drawSpline(svg)
+    drawSpline(svg, bins)
 }
 /* Used to fill the hole in the ice by creating a square patch*/
-function fixHoleInIce(){
+        function fixHoleInIce(){
             let returnData =[];
             for(let xIndex = 370.0; xIndex <435.0; xIndex+=2){
                 for(let yIndex = 295; yIndex <360; yIndex+=2){
@@ -205,8 +218,31 @@ function fixHoleInIce(){
             }
             return returnData;
         }
+
+function grabAllData(elements){
+    let foundData = [];
+    for(let i = 0; i < elements.length; i++){
+        let element = elements[i];
+
+        if(element !== undefined){
+            let foundElement = fixedData.find(function(point) {
+                return point.x === element.x && point.y === element.y;
+            })
+            foundData.push(foundElement);
+        } else {
+
+            let oceanElement = {
+                val: Array.apply(null, Array(336)).map(Number.prototype.valueOf,0)
+            }
+            foundData.push(oceanElement);
+        }
+
+        
+    }
+    console.log(foundData);
+}
 /* New Line Creation for Line Spline*/
-function drawSpline(svg){
+function drawSpline(svg, bins){
 
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
@@ -252,8 +288,8 @@ function drawSpline(svg){
     function redraw() {
       vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
 
-      let navPath = document.getElementById('navLine');
-      let totalLength = navPath.getTotalLength();
+
+
 
       var circle = vis.selectAll("circle")
           .data(points);
@@ -264,7 +300,6 @@ function drawSpline(svg){
           .on("mousedown", function(d) { selected = dragged = d; redraw(); })
         .transition()
           .duration(750)
-//          .easeLinear()
           .attr("r", 6.5)
           .attr('fill','white');
 
@@ -274,13 +309,11 @@ function drawSpline(svg){
           .classed("selectedNav", function(d) { return d === selected; })
           .attr("cx", function(d) { 
             if(d){
-                console.log('x:',d[0])
                 return d[0];
             }
              })
           .attr("cy", function(d) { 
             if(d){
-                console.log('y:',d[1])
                 return d[1];
             } })
           .attr('fill','#aaa');
@@ -311,6 +344,81 @@ function drawSpline(svg){
       if (!dragged) return;
       mousemove();
       dragged = null;
+
+      // Grab the closest elements along line
+      let closestElements = getClosestElements() // Note: Undefined values in array corrrespond to all 0's
+      console.log(closestElements)
+      // Grab other 
+      let allData = grabAllData(closestElements);
+
+
+    }
+    function getClosestElements(){
+      
+      let navPath = document.getElementById('navLine');
+      let navCoordinates = findCoordinatesAlongPath(navPath);
+      console.log(navCoordinates);
+      let closestElements = [];
+
+      for(let i = 0; i < navCoordinates.length; i++){
+        // grab the hexagon
+        //let element = document.elementFromPoint(navCoordinates[i][0], navCoordinates[i][1]);
+        
+        let navCoordinate = {
+            x: navCoordinates[i][0],
+            y: navCoordinates[i][1]
+        }
+        let closestHex = findClosestPoint(bins,navCoordinate,100);
+        // grab the closest element in hexagon
+        let closestPoint = findClosestPoint(closestHex, navCoordinate,50)
+
+        // As some of the vaulues were given 2 to fill in the hole
+            closestElements.push(closestPoint);
+        
+
+        
+      }
+      return closestElements;
+    }
+
+    function findCoordinatesAlongPath(path){
+        
+        let totalLength = path.getTotalLength();
+        let navCoordinates = []
+
+        for(let lengthCounter = 0; lengthCounter < totalLength; lengthCounter += 25){
+             let pt = path.getPointAtLength(lengthCounter);
+             pt.x = Math.round(pt.x);
+             pt.y = Math.round(pt.y);
+             navCoordinates.push([pt.x,pt.y]);
+        }
+        return navCoordinates;
+    }
+
+    function findClosestPoint(points,goalPoint,threshold){
+        let distances = [];
+        for(let i = 0; i < points.length; i++){
+
+            let distX = goalPoint.x - points[i].x 
+
+            let distY = goalPoint.y - points[i].y 
+
+            let eulcledianDistance = Math.sqrt(distX*distX +  distY*distY);
+            if(eulcledianDistance < threshold){
+                distances.push(eulcledianDistance);
+            } else {
+                distances.push(10000000);
+            }
+            
+        }
+
+        let min = Math.min(...distances);
+        if(min ===10000000){
+            return undefined;
+        }
+        let closestIndex = distances.indexOf(min);
+
+        return points[closestIndex];
     }
 
     function keydown() {
@@ -327,10 +435,6 @@ function drawSpline(svg){
       }
     }
 }
-    
-
-
-    
 
 function parseLatLong(key) {
     let halves = key.split("x");
