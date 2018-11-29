@@ -36,15 +36,7 @@
     <div id="myDiv"><!-- Plotly chart will be drawn inside this DIV --></div>
 
     <div id="wrapper">
-        <div id="sidebar-wrapper">
-            <div id="heatmap">
-                <p>
-                    <button id="preset-sept">Traditional Yearly Minimum (Sept)</button>
-                    <button id="preset-march">Traditional Yearly Maxiumum (March)</button>
-                </p>
-                <button id="clear">Clear Filter</button>
-                <table></table>
-            </div>
+        <div id="sidebar-wrapper" class="toggled">
         </div>
 
         <div id="page-content-wrapper">
@@ -64,11 +56,22 @@
                     <div id="lineMap">
                         <svg ></svg>
                     </div>
+
                 </main>
 
 
                 <section id="chart">
                 </section>
+
+                <div id="heatmap">
+                    <p>
+                        <button id="preset-sept">Traditional Yearly Minimum (Sept)</button>
+                        <button id="preset-march">Traditional Yearly Maxiumum (March)</button>
+                    </p>
+                    <button id="clear">Clear Filter</button>
+                    <table></table>
+                </div>
+
                 <a href="#menu-toggle" class="btn btn-secondary" id="menu-toggle">Show Selector</a>
             </div>
         </div>
