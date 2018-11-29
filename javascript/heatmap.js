@@ -22,6 +22,7 @@ class Heatmap {
         }
 
         this.mousedown = false;
+        // select the last 20 septembers on page load
         this.selectedMonths = ["Sep"];
         this.selectedYears = this.years.filter(y => y >= 1997);
 
@@ -69,15 +70,15 @@ class Heatmap {
         let greyscale = d3.scaleSequential(d3.interpolateGreys)
             .domain([extent[1], extent[0]]);
 
-        let years = this.years.map(i => {	
+        let celldata = months.map((m, n) => {
             let slice = data.splice(0, 12);
             return {
-                year: i, 
-                selected: this.selectedYears.includes(i),
-                months: months.map((m, n) => ({
-                    name: m, 
-                    selected: this.selectedMonths.includes(m) && this.selectedYears.includes(i), 
-                    psi: slice[n]
+                name: m,
+                selected: this.selectedMonths.includes(m),
+                years: this.years.map((y, i) => ({
+                    year: y,
+                    selected: this.selectedYears.includes(y) && this.selectedMonths.includes(m),
+                    psi: this.psidata[i*12 + n],
                 })),
             };
         });
@@ -86,42 +87,42 @@ class Heatmap {
 
         this.table.classed("hasSelection", hasSelection);
 
-        let colHeaders = this.head.selectAll("th.month")
-            .data(months);
+        let colHeaders = this.head.selectAll("th.year")
+            .data(this.years);
         colHeaders.enter()
             .append("th")
             .text(d => d)
-            .attr("class", "month")
+            .attr("class", "year")
             .on("mousedown", d => {
-                this.selectedMonths = [d];
+                this.selectedYears = [d];
                 this.mousedown = true;
                 this.render();
             })
             .on("mouseover", d => {
                 if (this.mousedown === true) {
-                    this.selectedMonths.push(d);
+                    this.selectedYears.push(d);
                     this.render();
                 }
             })
             .merge(colHeaders)
-            .classed("selected", d => this.selectedMonths.includes(d));
+            .classed("selected", d => this.selectedYears.includes(d));
 
         let rows = this.tbody.selectAll("tr")
-            .data(years);
+            .data(celldata);
 
         let newRows = rows.enter()
             .append("tr");
 
         newRows.append("th")
-            .text(d => d.year)
+            .text(d => d.name)
             .on("mousedown", d => {
-                this.selectedYears = [d.year];
+                this.selectedMonths = [d.name];
                 this.mousedown = true;
                 this.render();
             })
             .on("mouseover", d => {
                 if (this.mousedown === true) {
-                    this.selectedYears.push(d.year);
+                    this.selectedMonths.push(d.name);
                     this.render();
                 }
             });
@@ -130,13 +131,13 @@ class Heatmap {
         rows
             .classed("selectedYear", d => d.selected)
             .select("th")
-            .attr("class", d => `year ${d.selected ? "selected" : ""}`);
+            .attr("class", d => `month ${d.selected ? "selected" : ""}`);
 
-        let cells = rows.selectAll("td.month")
-            .data(year => year.months)
+        let cells = rows.selectAll("td.year")
+            .data(month => month.years)
         cells.enter()
             .append("td")
-            .attr("class", "month")
+            .attr("class", "year")
             .merge(cells)
             .style("background-color", d => hasSelection && !d.selected ? greyscale(d.psi) : scale(d.psi));
 

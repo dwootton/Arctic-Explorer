@@ -27,8 +27,8 @@ async function icemap(currentHeatMap) {
     svg.style("background-color", scale(0));
     let hexLayer = svg.append('g');   
     let projection = d3.geoGringortenQuincuncial()
-        .translate([width / 2, height / 2])
-        .scale([750]);
+        .translate([(400/700) * width, height / 2])
+        .scale([600]);
 
     let path = d3.geoPath()
         .projection(projection);
