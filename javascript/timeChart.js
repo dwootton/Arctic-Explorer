@@ -235,7 +235,8 @@
       }
       monthlyAverages.push(runningSum/runningCounter);
     }
-    let totalAverages = Array(2017-1990).fill(monthlyAverages);
+
+    let totalAverages = Array(2018-1990).fill(monthlyAverages);
     totalAverages = [].concat.apply([],totalAverages);
 
     this.allAveragedData = this.bindDateToData(totalAverages, this.startDate);
@@ -245,7 +246,6 @@
   selectAverage(query){
     this.averagedData = this.filterDataToQuery(this.currentDates, this.allAveragedData);
   }
-
 
   update(){
 

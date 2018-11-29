@@ -102,6 +102,7 @@ div.tooltip {
   border-radius: 8px;
   pointer-events: none;
 }
+
 div.HMtooltip {
   position: absolute;
   text-align: center;
