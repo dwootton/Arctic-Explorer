@@ -22,8 +22,8 @@ class Heatmap {
         }
 
         this.mousedown = false;
-        this.selectedMonths = ["Jan", "Jul"];
-        this.selectedYears = [1991];
+        this.selectedMonths = ["Sep"];
+        this.selectedYears = this.years.filter(y => y >= 1997);
 
         d3.select("#heatmap #clear").on("click", () => {
             // clearing a selection actually means to select all years and months
