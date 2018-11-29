@@ -131,6 +131,10 @@ div.HMtooltip {
     pointer-events: none;
 }
 
+#heatmap {
+    padding: 5px;
+}
+
 /* https://stackoverflow.com/a/4407335 */
 #heatmap th {
   -webkit-touch-callout: none; /* iOS Safari */

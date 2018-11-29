@@ -32,6 +32,17 @@ class Heatmap {
             this.render();
         });
 
+        d3.select("#preset-sept").on("click", () => {
+            this.selectedMonths = ["Sep"];
+            this.selectedYears = this.years;
+            this.render();
+        });
+        d3.select("#preset-march").on("click", () => {
+            this.selectedMonths = ["Mar"];
+            this.selectedYears = this.years;
+            this.render();
+        });
+
         this.psidata = psidata.psijson;
 
         d3.select("body").on("mouseup", () => {
