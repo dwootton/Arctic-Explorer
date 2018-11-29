@@ -7,6 +7,13 @@ line {
     stroke-width: 2px;
     stroke-linecap: round;
 }
+div#lineMap {
+        height: 300px;
+        width: 800px;
+        border:1px dashed #999;
+        overflow-y: scroll;
+        overflow-x: scroll
+      }
 /*
 .hexagon path {
   -webkit-transition: fill 2000ms linear;

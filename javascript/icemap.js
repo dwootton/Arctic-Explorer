@@ -1,10 +1,13 @@
 
 // Spline drawing from: https://bl.ocks.org/mbostock/4342190
 // For gussian blur: https://bl.ocks.org/mbostock/1342359
+// For Heatmap: http://bl.ocks.org/tjdecke/5558084
 
 
 let fixedData;
-async function icemap() {
+let heatmap;
+async function icemap(currentHeatMap) {
+    heatmap = currentHeatMap;
     let svg = d3.select("#map svg");
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
@@ -21,7 +24,6 @@ async function icemap() {
 
     let path = d3.geoPath()
         .projection(projection);
-
 
 	svg
         .append("path")
@@ -74,6 +76,9 @@ async function icemap() {
                     val: data[key]};
         });
 
+    // fixes the hole in the point heatmap
+    let addedData = fixHoleInIce();
+    fixedData = fixedData.concat(addedData);
 
     let margin = {left : 10,
                   right : 10,
@@ -103,13 +108,18 @@ async function icemap() {
                     val: value};
         });
         // Data to add
-        console.log(xyData);
-        let addedData = fixHoleInIce();
         
-        
-
+        // fixes the visible hole on the ice map
+        addedData = addedData.map(element => {
+            return {
+                'x':element.x,
+                'y':element.y,
+                'val': 1.8// 1.8 was chosen after experimention to best determine the color that fits in to the hole
+            }
+        });
 
         xyData = xyData.concat(addedData);
+        
         let hexGenerator = d3.hexbin(xyData)
             .x(function(d){
                 return d.x;
@@ -143,7 +153,6 @@ async function icemap() {
                 return 0;
                 });
           });
-        console.log(bins);
 
         hexLayer.selectAll('g').remove();
 
@@ -199,9 +208,9 @@ async function icemap() {
                     let pt = {
                         x:xIndex,
                         y:yIndex,
-                        val:2.0
+                        val: Array.apply(null, Array(336)).map(Number.prototype.valueOf,1)
                     };
-                returnData.push(pt)
+                    returnData.push(pt)
                 }
             }
             return returnData;
@@ -224,27 +233,115 @@ function grabAllData(elements){
             foundData.push(oceanElement);
         }        
     }
-    drawLineHeatMap(foundData);
-    console.log(foundData);
+    return foundData;
     // next steps, plot all points. 
     // plot along path 
 }
 
-function drawLineHeatMap(allData){
-    let svg = d3.select('#lineMap').append('svg')
+function drawLineHeatMap(myData){
+    let allData = jQuery.extend(true, [], myData);
+
+    let width = 3500;
+    let height = 1000; 
+    let margin = { top: 50, right: 0, bottom: 100, left: 30 };
+    d3.select('#lineMap').select('svg').selectAll('g').remove();
+    let svg = d3.select('#lineMap').select('svg')
+                    .attr('width',width)
+                    .attr('height',height)
+                .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
     for(let i = 0; i < allData.length; i++){
-        allData[i].val = bindDateToData(allData[i], new Date(1990,0));
+        if(allData[i] === undefined){
+            console.log(allData,i);
+        } else {
+            allData[i].val = bindDateAndPointToData(allData[i], new Date(1990,0),i);
+        }
     }
-    console.log(allData);
-
-    let query = [new Date(1990,3), new Date(1990,6), new Date(1990,8)]
+    console.log(heatmap);
+    let query = heatmap.getCurrentQuery();
     let selectedData = filterDataToQuery(query,allData);
-    let groupedSelectedData = groupData(query,selectedData);
-    console.log(groupedSelectedData);
+    //let groupedSelectedData = groupData(query,selectedData);
+
     // Currently data is not grouped by point. Group by point and then visualize array as heatmap
+    let rectHeight = rectWidth = 10;
 
+    let xScaleWidth = query.length*rectWidth;
+    if(xScaleWidth < 200){
+        xScaleWidth = 200;
+    }
+    //Set up xScale
+    let xScale = d3.scaleTime()
+            .domain(d3.extent(query))
+            .range([0, xScaleWidth]).nice(); 
 
+    let yScale = function(point){
+        return (point+1)*rectHeight;
+    }
 
+    //Set up Color Scale
+    let colorScale = d3.scaleSequential(d3.interpolateBlues)
+        .domain([1, 0]);
+
+    let rects = svg.selectAll("rect")
+              .data(selectedData);
+
+    rects.exit().remove();
+
+    rects.enter().append('rect')
+        .attr('width', rectWidth)
+        .attr('height', rectHeight)
+        .attr('x', function(d){
+            return xScale(d.date);
+        })
+        .attr('y', function(d){
+            return yScale(d.point);
+        })
+        .attr('fill', function(d){
+            if(d.data === "_NaN_"){
+                return colorScale(1);
+            }
+            return colorScale(d.data);
+        })
+        
+
+    rects
+        .attr('width', rectWidth)
+        .attr('height', rectHeight)
+        .attr('x', function(d){
+            return xScale(d.date);
+        })
+        .attr('y', function(d){
+
+            return yScale(d.point);
+        })
+        .attr('fill', function(d){
+            if(d.data === "_NaN_"){
+                return colorScale(1);
+            }
+            return colorScale(d.data);
+        })
+
+    // Append Axis
+    let x_axis = d3.axisBottom(xScale).ticks((query.length/15+1));
+
+    svg.append("g")
+       .call(x_axis)
+       .selectAll("text")
+        .attr("y", -10)
+        .attr("x", 0)
+        .attr("dy", ".35em");
+
+    /*
+    let xAxis = d3.svg.axis()
+        .scale(xScale)
+        .tickFormat(function (d) {
+            return d;
+        })
+        .orient("top");
+
+    */
+    //Set up Append Rects 
 
 }
 
@@ -262,7 +359,7 @@ function groupData(query,selectedData){
     return groupedArray;
 }
 
-function bindDateToData(fullData,startDate){
+function bindDateAndPointToData(fullData,startDate,point){
         let data = fullData.val;
         let returnData = [];
         let currentDate = new Date(startDate);
@@ -273,33 +370,29 @@ function bindDateToData(fullData,startDate){
                 'x': fullData.x,
                 'y': fullData.y,
                 'data': data[i],
-                'date': new Date(currentDate)}
+                'date': new Date(currentDate),
+                'point': point}
             );
             currentDate.setMonth(currentDate.getMonth() + 1);
         }
 
         return returnData;
     }
+
 function filterDataToQuery(query,allData) {
-        let returnData = [];
-        let counter = 0;
-        console.log('query:', query);
+    let returnData = [];
+    let counter = 0;
 
-        for(let i = 0; i < allData.length; i++){
-            console.log(allData[i]);
-            for(let innerCounter = 0; innerCounter < allData[i].val.length; innerCounter++){
-                //console.log('inner data',allData[i].val[innerCounter]);
-                let inArray = !!query.find(item => {return item.getTime() == allData[i].val[innerCounter].date.getTime()});
-
-                if(inArray){
-
-                    returnData.push(allData[i].val[innerCounter]);
-                }
+    for(let i = 0; i < allData.length; i++){
+        for(let innerCounter = 0; innerCounter < allData[i].val.length; innerCounter++){
+            let inArray = !!query.find(item => {return item.getTime() == allData[i].val[innerCounter].date.getTime()});
+            if(inArray){
+                returnData.push(allData[i].val[innerCounter]);
             }
-            
         }
-        return returnData;
-     };
+    }
+    return returnData;
+};
 
 /* New Line Creation for Line Spline*/
 function drawSpline(svg, bins){
@@ -349,6 +442,7 @@ function drawSpline(svg, bins){
       vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
 
 
+      let groups = vis.selectAll("g")
 
 
       var circle = vis.selectAll("circle")
@@ -360,7 +454,7 @@ function drawSpline(svg, bins){
           .on("mousedown", function(d) { selected = dragged = d; redraw(); })
         .transition()
           .duration(750)
-          .attr("r", 6.5)
+          .attr("r", 10)
           .attr('fill','white');
 
         circle.exit().remove();
@@ -378,8 +472,6 @@ function drawSpline(svg, bins){
             } })
           .attr('fill','#aaa');
           
-
-
       if (d3.event) {
         d3.event.preventDefault();
         d3.event.stopPropagation();
@@ -387,7 +479,6 @@ function drawSpline(svg, bins){
     }
     /* Event Code */
     function mousedown() {
-      d3.mouse(vis.node())
       points.push(selected = dragged = d3.mouse(vis.node()));
       redraw();
     }
@@ -407,9 +498,10 @@ function drawSpline(svg, bins){
 
       // Grab the closest elements along line
       let closestElements = getClosestElements() // Note: Undefined values in array corrrespond to all 0's
-      console.log(closestElements)
+
       // Grab other 
       let allData = grabAllData(closestElements);
+      drawLineHeatMap(allData);
 
 
     }
@@ -417,7 +509,6 @@ function drawSpline(svg, bins){
       
       let navPath = document.getElementById('navLine');
       let navCoordinates = findCoordinatesAlongPath(navPath);
-      console.log(navCoordinates);
       let closestElements = [];
 
       for(let i = 0; i < navCoordinates.length; i++){
@@ -434,9 +525,6 @@ function drawSpline(svg, bins){
 
         // As some of the vaulues were given 2 to fill in the hole
             closestElements.push(closestPoint);
-        
-
-        
       }
       return closestElements;
     }
@@ -480,6 +568,7 @@ function drawSpline(svg, bins){
 
         return points[closestIndex];
     }
+
 
     function keydown() {
       if (!selected) return;

@@ -56,7 +56,9 @@
 
                              <!-- <input type="range" id="yearPicker" style="width: 500px"/> -->
 
-                    <section id="aggregate"></section>
+                    <div id="lineMap">
+                        <svg ></svg>
+                    </div>
                 </main>
 
 
@@ -91,14 +93,16 @@
 <script>
 
 async function init() {
-    icemap();
-
     let data =  d3.json("data/totalConcentration.json");
     //let timeChart = new TimeChart(data,window);
     let currentChart = new TimeChart(data,window);
     data = await data;
 
     let heatmap = new Heatmap(data, () => {}, currentChart);
+
+    icemap(heatmap);
+
+    
 	
 }
 init();

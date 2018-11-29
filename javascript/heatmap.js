@@ -40,6 +40,10 @@ class Heatmap {
         this.render();
     }
 
+    getCurrentQuery() {
+        return this.currentQuery;
+    }
+
     render() {
         let data = this.psidata.slice(); // shallow copy
 
@@ -121,7 +125,6 @@ class Heatmap {
             .merge(cells)
             .style("background-color", d => hasSelection && !d.selected ? greyscale(d.psi) : scale(d.psi));
 
-
         let dates = [];
 
         let dateConverter = {
@@ -137,6 +140,7 @@ class Heatmap {
                 dates.push(new Date(currentYear, dateConverter[currentMonth]));
             }
         }
+        this.currentQuery = dates;
         this.currentChart.selectData(dates);
 
     }
