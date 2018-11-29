@@ -214,6 +214,7 @@ async function icemap(currentHeatMap) {
         .attr('fill', 'gold')
     drawSpline(svg, bins)
 }
+
 /* Used to fill the hole in the ice by creating a square patch*/
         function fixHoleInIce(){
             let returnData =[];
@@ -256,8 +257,13 @@ let div = d3.select("body").append("div")
             .style("opacity", 0);
         
 
+
+
+let heatMapSVG;
 function drawLineHeatMap(myData){
     let allData = jQuery.extend(true, [], myData);
+    d3.select('#lineMap').attr('height', 300).attr('width',800);
+
 
     let width = 3500;
     let height = 1000; 
@@ -269,6 +275,7 @@ function drawLineHeatMap(myData){
                     .attr('height',height)
                 .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    heatMapSVG = svg;
 
     let pathGroup = d3.select('#lineMap').select('svg').append('g')
         .attr("transform", "translate(" + margin.left/3 + "," + margin.top + ")");
@@ -284,7 +291,6 @@ function drawLineHeatMap(myData){
         .attr('x',5)
         .attr('fill', 'steelblue');
 
-    console.log(scaledPointDistances);
     let pathGroups = pathGroup.selectAll('circle')
         .data(scaledPointDistances);
 
@@ -294,18 +300,9 @@ function drawLineHeatMap(myData){
         .attr('transform', function(d){
             return 'translate(' + 5+','+pathScale(d)+')';
         });
+
     newPathGroups
         .append('circle')
-        //.attr('r', 1e-6)
-        //.attr('fill', '#0c3169')
-    /*
-        .attr('cx',10)
-        .attr('cy', function(d){
-            return pathScale(d);
-        })
-        */
-        //.transition()
-        //.duration(500)
         .attr('r', 10)
         .attr('fill',function(d,i){
             console.log(i, currentSelectedCircle);
@@ -318,8 +315,12 @@ function drawLineHeatMap(myData){
         .text(function(d,i){
             return i+1;
         })
-        .attr('x', -4)
-        .attr('y', +4)
+        .attr('x', function(d,i){
+            if(i > 9){
+                return -8.5;
+            }
+            return -4})
+        .attr('y', +5)
         .attr('fill','black');
 
     for(let i = 0; i < allData.length; i++){
@@ -498,6 +499,16 @@ function filterDataToQuery(query,allData) {
     return returnData;
 };
 
+function hideMapNavLine(){
+    splineSVG.transition().duration(500).attr('opacity',0);
+}
+
+function showMapNavLine(){
+    splineSVG.transition().duration(500).attr('opacity',1);
+
+}
+
+
 /* New Line Creation for Line Spline*/
 function drawSpline(svg, bins){
 
@@ -508,6 +519,7 @@ function drawSpline(svg, bins){
     .on("mousedown", mousedown)
     .on("mouseup", mouseup)
     .append('g');
+    splineSVG = vis;
 
     let line = d3.line()
         .x(function(d){
@@ -551,7 +563,6 @@ function drawSpline(svg, bins){
       let groups = vis.selectAll("g").data(points);
 
       let eneteredGroups = groups.enter().append('g')
-
         .attr('transform', function(d){
             return 'translate(' + d[0] + ',' + d[1] + ')';
         })

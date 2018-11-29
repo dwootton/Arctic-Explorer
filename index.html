@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<!--- Switch CSS and code: https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_switch--->
 
 <head>
     <meta charset="UTF-8">
@@ -52,6 +53,12 @@
                 <header>
                     <img src='/assets/logo.png' height='100' width='213'> <!-- Ratio is 2.13 px width to 1 px height -->
                     <p class="info">Ethan Ransom and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
+                    <text id="currentMode"> </text>
+                    <label class="switch">
+
+                      <input type="checkbox" id="modeSwitch"checked>
+                      <span class="slider"></span>
+                    </label>
                 </header>
 
                 <main>
@@ -83,6 +90,8 @@
 <script src="javascript/heatmap.js"></script>
 <script src="javascript/icemap.js"></script>
 <script src="javascript/timeChart.js"></script>
+<script src="javascript/modeSelection.js"></script> 
+
 <!-- Bootstrap core JavaScript -->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -97,6 +106,8 @@
 
 <script>
 
+
+
 async function init() {
     let data =  d3.json("data/totalConcentration.json");
     //let timeChart = new TimeChart(data,window);
@@ -106,6 +117,7 @@ async function init() {
     let heatmap = new Heatmap(data, () => {}, currentChart);
 
     icemap(heatmap);
+    modeSelection();
 
     
 	

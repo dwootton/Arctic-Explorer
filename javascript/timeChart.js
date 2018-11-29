@@ -220,6 +220,13 @@
             .text("Date");
    }
 
+   hideChart(){
+    this.svg.attr('height',0).attr('opacity',0);
+   }
+   
+   showChart(){
+    this.svg.attr('height',this.height).attr('opacity',1);
+   }
   calculateAverages(){
     let data = this.allData;
     let monthlyAverages = [];
