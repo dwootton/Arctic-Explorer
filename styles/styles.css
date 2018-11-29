@@ -133,6 +133,25 @@ div.HMtooltip {
 
 #heatmap {
     padding: 5px;
+
+    font-size: 10px;
+    font-family: arial;
+}
+
+#heatmap thead th {
+    /* Safari */
+    -webkit-transform: rotate(-45deg);
+
+    /* Firefox */
+    -moz-transform: rotate(-45deg);
+
+    /* IE */
+    -ms-transform: rotate(-45deg);
+
+    /* Opera */
+    -o-transform: rotate(-45deg);
+
+    height: 40px;
 }
 
 /* https://stackoverflow.com/a/4407335 */
@@ -148,7 +167,6 @@ div.HMtooltip {
 
 #heatmap td, #heatmap th {
   width: 40px;
-  border: 2px solid white;
 }
 
 #heatmap .hasSelection {
