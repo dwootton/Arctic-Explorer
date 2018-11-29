@@ -6,11 +6,15 @@
 
 let fixedData;
 let heatmap;
+let mapHighlight;
+let navCoordinates;
 async function icemap(currentHeatMap) {
     heatmap = currentHeatMap;
     let svg = d3.select("#map svg");
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
+
+
 
     let scale = d3.scaleSequential(d3.interpolateBlues)
         .domain([1, 0]);
@@ -198,6 +202,12 @@ async function icemap(currentHeatMap) {
     };
 
     window.render(0);
+    mapHighlight = svg.append('circle')
+        .attr('id','highlighter')
+        .attr('cx',-10)
+        .attr('cy',-10)
+        .attr('r',20)
+        .attr('fill', 'gold')
     drawSpline(svg, bins)
 }
 /* Used to fill the hole in the ice by creating a square patch*/
@@ -237,6 +247,10 @@ function grabAllData(elements){
     // next steps, plot all points. 
     // plot along path 
 }
+let div = d3.select("body").append("div")   
+            .attr("class", "HMtooltip")               
+            .style("opacity", 0);
+        
 
 function drawLineHeatMap(myData){
     let allData = jQuery.extend(true, [], myData);
@@ -288,6 +302,9 @@ function drawLineHeatMap(myData){
 
     rects.exit().remove();
 
+            let monthNames = ["Jan", "Feb", "Mar", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+
     rects.enter().append('rect')
         .attr('width', rectWidth)
         .attr('height', rectHeight)
@@ -303,7 +320,32 @@ function drawLineHeatMap(myData){
             }
             return colorScale(d.data);
         })
-        
+        .on("mouseover", function(d) {
+               div.transition()
+                 .duration(600)
+                 .style("opacity", .7);
+               div.html(monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
+                 .style("top", d3.event.pageY - 70 + "px")
+                 .style("left", d3.event.pageX - 30 + "px");
+                 console.log(d.point, navCoordinates);
+                 let currentCoordinate = navCoordinates[d.point]
+
+                d3.select('#highlighter')
+                .transition().duration(400).attr('cx',currentCoordinate[0]).attr('cy',currentCoordinate[1]);
+                })
+             .on("mouseout", function(d) {
+               div.transition()
+                 .duration(300)
+                 .style("opacity", 0);
+               d3.select('#highlighter').transition().duration(1000).attr('cx',-10).attr('cy',-10);
+               })
+             .on("click", function(d){
+                let monthsSinceStart = d.date.getMonth() + d.date.getYear()*12;
+                let startDate = new Date(1990,0);            
+                monthsSinceStart -= startDate.getMonth() + startDate.getYear()*12;
+                window.render(monthsSinceStart)
+             })
+
 
     rects
         .attr('width', rectWidth)
@@ -321,6 +363,7 @@ function drawLineHeatMap(myData){
             }
             return colorScale(d.data);
         })
+
 
     // Append Axis
     let x_axis = d3.axisBottom(xScale).ticks((query.length/15+1));
@@ -342,6 +385,10 @@ function drawLineHeatMap(myData){
 
     */
     //Set up Append Rects 
+    if (d3.event) {
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+      }
 
 }
 
@@ -505,10 +552,11 @@ function drawSpline(svg, bins){
 
 
     }
+
     function getClosestElements(){
       
       let navPath = document.getElementById('navLine');
-      let navCoordinates = findCoordinatesAlongPath(navPath);
+      navCoordinates = findCoordinatesAlongPath(navPath);
       let closestElements = [];
 
       for(let i = 0; i < navCoordinates.length; i++){
@@ -523,7 +571,7 @@ function drawSpline(svg, bins){
         // grab the closest element in hexagon
         let closestPoint = findClosestPoint(closestHex, navCoordinate,50)
 
-        // As some of the vaulues were given 2 to fill in the hole
+        // As some of the values were given 2 to fill in the hole
             closestElements.push(closestPoint);
       }
       return closestElements;
