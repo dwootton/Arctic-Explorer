@@ -16,14 +16,19 @@ class Heatmap {
         this.startYear = 1990;
         this.endYear = 2018; // noninclusive
 
+        this.years = [];
+        for (let i = this.startYear; i < this.endYear; i++) {
+            this.years.push(i);
+        }
 
         this.mousedown = false;
         this.selectedMonths = ["Jan", "Jul"];
         this.selectedYears = [1991];
 
         d3.select("#heatmap #clear").on("click", () => {
-            this.selectedMonths = [];
-            this.selectedYears = [];
+            // clearing a selection actually means to select all years and months
+            this.selectedMonths = months;
+            this.selectedYears = this.years;
             this.render();
         });
 
@@ -53,19 +58,18 @@ class Heatmap {
         let greyscale = d3.scaleSequential(d3.interpolateGreys)
             .domain([extent[1], extent[0]]);
 
-        let years = [];
-        for (let i = this.startYear; i < this.endYear; i++) {
+        let years = this.years.map(i => {	
             let slice = data.splice(0, 12);
-            years.push({
+            return {
                 year: i, 
                 selected: this.selectedYears.includes(i),
                 months: months.map((m, n) => ({
                     name: m, 
-                    selected: this.selectedYears.includes(i) || this.selectedMonths.includes(m), 
+                    selected: this.selectedMonths.includes(m) && this.selectedYears.includes(i), 
                     psi: slice[n]
                 })),
-            });
-        }
+            };
+        });
 
         let hasSelection = this.selectedMonths.length !== 0 || this.selectedYears.length !== 0;
 
