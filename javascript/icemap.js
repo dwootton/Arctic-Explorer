@@ -8,6 +8,10 @@ let fixedData;
 let heatmap;
 let mapHighlight;
 let navCoordinates;
+let pointDistances;
+let scaledPointDistances;
+let currentSelectedCircle;
+
 async function icemap(currentHeatMap) {
     heatmap = currentHeatMap;
     let svg = d3.select("#map svg");
@@ -257,13 +261,66 @@ function drawLineHeatMap(myData){
 
     let width = 3500;
     let height = 1000; 
-    let margin = { top: 50, right: 0, bottom: 100, left: 30 };
+    let margin = { top: 50, right: 0, bottom: 100, left: 50 };
+    let rectHeight = rectWidth = 10;
     d3.select('#lineMap').select('svg').selectAll('g').remove();
     let svg = d3.select('#lineMap').select('svg')
                     .attr('width',width)
                     .attr('height',height)
                 .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    let pathGroup = d3.select('#lineMap').select('svg').append('g')
+        .attr("transform", "translate(" + margin.left/3 + "," + margin.top + ")");
+    let pathScale = d3.scaleLinear()
+        .domain([0, 1])
+        .range([0, allData.length*rectHeight]);
+
+    pathGroup.append('rect')
+        .attr('width', 2)
+        .attr('height', function(d){
+            return pathScale(1);
+        })
+        .attr('x',5)
+        .attr('fill', 'steelblue');
+
+    console.log(scaledPointDistances);
+    let pathGroups = pathGroup.selectAll('circle')
+        .data(scaledPointDistances);
+
+    pathGroups.exit().remove();
+
+    let newPathGroups = pathGroups.enter().append('g')
+        .attr('transform', function(d){
+            return 'translate(' + 5+','+pathScale(d)+')';
+        });
+    newPathGroups
+        .append('circle')
+        //.attr('r', 1e-6)
+        //.attr('fill', '#0c3169')
+    /*
+        .attr('cx',10)
+        .attr('cy', function(d){
+            return pathScale(d);
+        })
+        */
+        //.transition()
+        //.duration(500)
+        .attr('r', 10)
+        .attr('fill',function(d,i){
+            console.log(i, currentSelectedCircle);
+            if(currentSelectedCircle === i){
+                return 'red';
+            } 
+            return 'white'});
+
+    newPathGroups.append('text')
+        .text(function(d,i){
+            return i+1;
+        })
+        .attr('x', -4)
+        .attr('y', +4)
+        .attr('fill','black');
 
     for(let i = 0; i < allData.length; i++){
         if(allData[i] === undefined){
@@ -278,7 +335,7 @@ function drawLineHeatMap(myData){
     //let groupedSelectedData = groupData(query,selectedData);
 
     // Currently data is not grouped by point. Group by point and then visualize array as heatmap
-    let rectHeight = rectWidth = 10;
+    
 
     let xScaleWidth = query.length*rectWidth;
     if(xScaleWidth < 200){
@@ -487,6 +544,8 @@ function drawSpline(svg, bins){
 
     function redraw() {
       vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
+      pointDistances = calculatePointDistances(points);
+      console.log(pointDistances);
 
 
       let groups = vis.selectAll("g").data(points);
@@ -505,6 +564,7 @@ function drawSpline(svg, bins){
           .duration(750)
           .attr("r", 10)
           .attr('fill','white');
+
     eneteredGroups
         .append('text')
         .attr('y', +5)
@@ -516,7 +576,7 @@ function drawSpline(svg, bins){
             }
         })
         .text(function(d,i){
-            return i;
+            return i+1;
         });
 
     groups.exit().remove();
@@ -524,7 +584,12 @@ function drawSpline(svg, bins){
 
 
         groups
-            .classed("selectedNavGroup", function(d) { return d === selected; })
+            .classed("selectedNavGroup", function(d,i) { 
+                if(d === selected){
+                    currentSelectedCircle = i;
+                    return true;
+                }
+                return false; })
         .attr('transform', function(d){
             return 'translate(' + d[0] + ',' + d[1] + ')';
         })
@@ -573,6 +638,7 @@ function drawSpline(svg, bins){
 
     }
 
+
     function getClosestElements(){
       
       let navPath = document.getElementById('navLine');
@@ -597,10 +663,19 @@ function drawSpline(svg, bins){
       }
       return closestElements;
     }
+    function scalePointDistances(distances, totalLength){
+        let scaledDistances = [];
+        for(let i = 0; i < distances.length; i++){
+            scaledDistances.push(distances[i]/totalLength);
+        }
+        return scaledDistances;
+
+    }
 
     function findCoordinatesAlongPath(path){
         
         let totalLength = path.getTotalLength();
+        scaledPointDistances = scalePointDistances(pointDistances, totalLength );
         let navCoordinates = []
 
         for(let lengthCounter = 0; lengthCounter < totalLength; lengthCounter += 25){
@@ -657,6 +732,20 @@ function drawSpline(svg, bins){
         }
       }
     }
+}
+
+function calculatePointDistances(points){
+    let distances = [0];
+
+    for(let i = 1; i < points.length; i++){
+        let distX = points[i][0] - points[i-1][0]
+
+        let distY = points[i][1] - points[i-1][1]
+        let eulcledianDistance = Math.sqrt(distX*distX +  distY*distY);
+        distances[i] = distances[i-1]+eulcledianDistance;
+
+    }
+    return distances;
 }
 
 function parseLatLong(key) {
