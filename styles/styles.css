@@ -76,6 +76,15 @@ footer {
 .selectedNav {
   fill: #f00;
 }
+.selectedNavGroup{
+  background: "yellow";
+
+  
+}
+
+.selectedNavGroup .navCircle {
+    fill: #f00;
+}    
 text {
     font-family:"arial";
 }

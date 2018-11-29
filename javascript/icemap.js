@@ -489,35 +489,55 @@ function drawSpline(svg, bins){
       vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
 
 
-      let groups = vis.selectAll("g")
+      let groups = vis.selectAll("g").data(points);
 
+      let eneteredGroups = groups.enter().append('g')
 
-      var circle = vis.selectAll("circle")
-          .data(points);
-
-      circle.enter().append("circle")
-            .attr('class','navCircle')
-          .attr("r", 1e-6)
+        .attr('transform', function(d){
+            return 'translate(' + d[0] + ',' + d[1] + ')';
+        })
           .on("mousedown", function(d) { selected = dragged = d; redraw(); })
+    eneteredGroups
+        .append('circle')
+        .attr('class','navCircle')
+          .attr("r", 1e-6)
         .transition()
           .duration(750)
           .attr("r", 10)
           .attr('fill','white');
+    eneteredGroups
+        .append('text')
+        .attr('y', +5)
+        .attr('x', function(d,i){
+            if(i < 10){
+                return -4;
+            } else {
+                return -8.5;
+            }
+        })
+        .text(function(d,i){
+            return i;
+        });
 
-        circle.exit().remove();
+    groups.exit().remove();
 
-      circle
-          .classed("selectedNav", function(d) { return d === selected; })
-          .attr("cx", function(d) { 
+
+
+        groups
+            .classed("selectedNavGroup", function(d) { return d === selected; })
+        .attr('transform', function(d){
+            return 'translate(' + d[0] + ',' + d[1] + ')';
+        })
+          .attr("x", function(d) { 
             if(d){
                 return d[0];
             }
              })
-          .attr("cy", function(d) { 
+          .attr("y", function(d) { 
             if(d){
                 return d[1];
             } })
-          .attr('fill','#aaa');
+
           
       if (d3.event) {
         d3.event.preventDefault();
@@ -567,6 +587,7 @@ function drawSpline(svg, bins){
             x: navCoordinates[i][0],
             y: navCoordinates[i][1]
         }
+
         let closestHex = findClosestPoint(bins,navCoordinate,100);
         // grab the closest element in hexagon
         let closestPoint = findClosestPoint(closestHex, navCoordinate,50)
@@ -593,6 +614,11 @@ function drawSpline(svg, bins){
 
     function findClosestPoint(points,goalPoint,threshold){
         let distances = [];
+
+        if(points === undefined){ //if there are no close points, return ocean;
+            return undefined;
+        }
+
         for(let i = 0; i < points.length; i++){
 
             let distX = goalPoint.x - points[i].x 
@@ -610,7 +636,7 @@ function drawSpline(svg, bins){
 
         let min = Math.min(...distances);
         if(min ===10000000){
-            return undefined;
+            return undefined; // return ocean point
         }
         let closestIndex = distances.indexOf(min);
 
