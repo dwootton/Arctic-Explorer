@@ -23,6 +23,7 @@
 
         this.startDate = new Date(1990,0);
         this.averageLineActive = true;
+        this.renderTime = (new Date()).getTime();
 
 
 
@@ -151,7 +152,7 @@
 
         // optinos for d3.js 'hiding average'
          ref.svg.append("text")
-            .attr("x", ref.width-100)             
+            .attr("x", ref.width-160)             
             .attr("y", ref.margin.top+15)    
 
             .attr("class", "legend")
@@ -164,7 +165,7 @@
               // Hide or show the elements
               ref.avgLine.transition(500).style("opacity", newOpacity);
             })
-            .text("Toggle Average Line");
+            .text("Click to Toggle Average Line");
 
         that.div = d3.select("body").append("div")
             .attr("class", "tooltip")
@@ -174,11 +175,9 @@
 
         that.zoomWindow.call(zoom);
 
-        console.log("HERE")
-        console.log(that.currentDates);
+
         let selectedIndex = that.currentDates.findIndex(d => {d.getTime()===that.selectedDate.getTime()});
-        console.log(selectedIndex)
-        console.log(that.currentDates.length);
+
 
         that.update();
         
@@ -472,7 +471,9 @@
         // Remove old
         scatterSelect.exit().remove()
 
-        if(!this.plottingData.includes(this.selectedDate)){
+
+        if(!this.plottingData.includes(this.selectedDate && (new Date()).getTime() > this.renderTime +1000)){
+          this.renderTime =  (new Date()).getTime();
           this.dot.select('g').select("circle").dispatch("click");
         }
       }

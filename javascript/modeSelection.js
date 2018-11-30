@@ -8,7 +8,7 @@ function update(){
         return;
     }
     */
-	console.log("Here!")
+
 
 	let status = document.getElementById("modeSwitch").checked; // False => Explorer, True => Navigator
     let modeText = d3.select('#currentMode');
@@ -43,7 +43,6 @@ function update(){
 
 function modeSelection(){
 	let button = d3.select('#modeSwitch');
-	console.log(button);
 	button.on('change', update);
     button.attr('checked','false');
     $('#modeSwitch').trigger('click');

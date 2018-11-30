@@ -599,7 +599,7 @@ function drawSpline(svg, bins){
     vis.node().focus();
 
     function redraw() {
-        console.log(points);
+     console.log(points);
       vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
 
       pointDistances = calculatePointDistances(points);
