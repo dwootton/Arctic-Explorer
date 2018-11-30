@@ -16,6 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.9.0/d3-legend.js"></script>
     <script src="https://d3js.org/d3-polygon.v1.min.js"></script>
       <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script>
+      <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
 <!--- Bootstrap --->
       <!-- Latest compiled and minified CSS -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,7 +34,12 @@
     <!-- <link href="https://fonts.googleapis.com/css?family=Arvo" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> -->
 </head>
+<div id="overlay">  
+    <div id="welcome">  
+        <p>Welcome to Arctic Explorer.<br> Your page is being loaded.</p>
+    </div>
 
+</div>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <!---
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,8 +85,8 @@
 
         <div id="page-content-wrapper">
             <div class="container-fluid" id = "container">
-                <header class="row span12">
-                    <p class="text-center">By <a href="https://github.com/schnauzer/">Ethan Ransom</a> and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
+                <header class="row span7">
+                    <p class="text-center" >    By <a href="https://github.com/schnauzer/">Ethan Ransom</a> and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
 
                 </header>
 
@@ -147,7 +153,13 @@ init();
 
 </script>
 
-
+<script>
+setTimeout(
+  function() 
+  {
+    d3.select('#overlay').transition().duration(2000).attr('opacity',0);
+    d3.select('#overlay').transition().remove();
+  }, 4000);
 </script> 
 
 
