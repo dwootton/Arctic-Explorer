@@ -351,7 +351,7 @@
             })
             .attr("stroke", "white")
             .attr("stroke-width", "2px")
-            .style("fill", 'orange');
+            .style("fill", '#87ceeb');
 
         let toolTipAppearDuration = 200;
         let toolTipDisappearDuration = 400;
@@ -415,7 +415,7 @@
           })
           .attr("stroke", "white")
           .attr("stroke-width", "2px")
-          .style("fill", 'green');
+          .style("fill", '#87ceeb');
 
         //Enter new circles
         let newCircles = scatterSelect.enter()
@@ -429,7 +429,7 @@
             .attr("r", circleRadius)
             .attr("stroke", "white")
             .attr("stroke-width", "2px")
-            .style("fill", 'red');
+            .style("fill", '#87ceeb');
 
         let toolTipAppearDuration = 200;
         let toolTipDisappearDuration = 400;
@@ -470,6 +470,10 @@
 
         // Remove old
         scatterSelect.exit().remove()
+
+        if(!this.plottingData.includes(this.selectedDate)){
+          this.dot.select('g').select("circle").dispatch("click");
+        }
       }
     }
 

@@ -101,11 +101,11 @@ input:checked + .slider:before {
 
 /* Style the dots by assigning a fill and stroke */
 .dot {
-    fill: #add8e6;
+    fill: #87ceeb;
     stroke: #fff;
 }
 .selected {
-    fill: #003366;
+    fill: #F5B000;
 }
 
 .selectedNav {
