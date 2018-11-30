@@ -1,5 +1,5 @@
   /*
-  References: 
+  References:
   For line hiding via click: http://bl.ocks.org/d3noob/5d621a60e2d1d02086bf
 
   */
@@ -40,10 +40,10 @@
 
           // Sets the scale for the x axis
           that.timeScale = d3.scaleTime()
-            .domain(d3.extent(data, function(d) { 
-              return d.date; 
+            .domain(d3.extent(data, function(d) {
+              return d.date;
             }))
-            .range([0, that.width]).nice(); 
+            .range([0, that.width]).nice();
 
           that.xAxis = d3.axisBottom(that.timeScale).ticks(12);
           that.yAxis = d3.axisLeft(that.concentrationScale).ticks(12 * that.height / that.width);
@@ -89,22 +89,23 @@
         that.dot = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
         that.avgLine = that.svg.append("g").attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
         that.selector = that.svg.append("g").attr('class','lineSelctor').attr("transform", "translate(" + that.margin.left + "," + that.margin.top + ")");
+        that.slider = that.selector.append("line");
 
         that.svg.append("text")
-                  .attr("x", (that.width + that.margin.left - that.margin.right) / 2)          
+                  .attr("x", (that.width + that.margin.left - that.margin.right) / 2)
                   .attr("y", 0 + (that.margin.top*2 / 3))
-                  .attr("text-anchor", "middle")  
-                  .style("font-size", "16px") 
+                  .attr("text-anchor", "middle")
+                  .style("font-size", "16px")
                   .text("Average Sea Ice Concentration");
 
         that.appendLabels();
-        
+
         let ref = that;
 
         let zoomed = function(){
           let new_yScale = d3.event.transform.rescaleY(ref.concentrationScale);
           let new_xScale = d3.event.transform.rescaleX(ref.timeScale);
-          
+
           ref.currentTimeScale = new_xScale;
 
           // re-scale axes
@@ -127,7 +128,7 @@
           ref.line.select('path').attr("d", plotLine);
           ref.avgLine.select('path').attr("d",plotLine);
 
-          ref.dot.selectAll('circle')          
+          ref.dot.selectAll('circle')
             .attr("cx", function(d,i) {
               return new_xScale(d.date);
             })
@@ -151,8 +152,9 @@
          ref.svg.append("text")
             .attr("x", ref.width-100)             
             .attr("y", ref.margin.top+15)    
+
             .attr("class", "legend")
-            .style("fill", "orange")         
+            .style("fill", "orange")
             .on("click", function(){
               // Determine if current line is visible
               let active   = ref.averageLineActive ? false : true ,
@@ -163,8 +165,8 @@
             })
             .text("Toggle Average Line");
 
-        that.div = d3.select("body").append("div")   
-            .attr("class", "tooltip")               
+        that.div = d3.select("body").append("div")
+            .attr("class", "tooltip")
             .style("opacity", 0);
 
         var zoom = d3.zoom().scaleExtent([0.25, 4]).on('zoom', zoomed);
@@ -189,17 +191,17 @@
           let plottingData = that.bindDateToData(data, that.startDate)
 
           //that.map = window;
-          that.data = data; 
+          that.data = data;
           that.plottingData = plottingData;
-          
 
-          
+
+
           that.chart = chart;
 
           that.timeChart();
         })
         */
-        
+
      })
    }
    appendLabels(){
@@ -248,7 +250,7 @@
 
     this.allAveragedData = this.bindDateToData(totalAverages, this.startDate);
     this.averagedData = this.allAveragedData;
-  } 
+  }
 
   selectAverage(query){
     this.averagedData = this.filterDataToQuery(this.currentDates, this.allAveragedData);
@@ -265,7 +267,7 @@
         circleRadius = 10;
       } else if(numPoints < 25){
         circleRadius = 5;
-      } 
+      }
 `     */
 
       // adjust extents to ensure that the chart renders correctly
@@ -300,25 +302,11 @@
 
       //let lineSelect = this.line.selectAll('path').data(this.plottingData);
 
+      this.updateSlider();
+
       if(this.first){
         this.first = false;
         this.selectedDate = this.currentDates[0];
-
-        let circles = this.selector
-          .selectAll('circle')
-          .data([this.selectedDate]);
-
-          let enterCircles = circles
-            .enter().append('circle')
-            .attr('class','slider')
-            .attr('r', circleRadius)
-            .attr('cx', function(d){
-              return rescaledTimeScale(d);
-            })
-            .attr('cy', function(d){
-              return that.height;
-            })
-            .attr('fill','blue');
 
         this.line
           .attr("clip-path", "url(#clip)")
@@ -389,15 +377,13 @@
                 d3.selectAll("circle").classed("selected", false);
                 d3.select(this).classed("selected", true);
                 let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
-                that.selectedDate = element.date;                
+                that.selectedDate = element.date;
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
                 that.map.render(monthsSinceStart)
                 that.updateSlider();
 
              });
-      } else {  
-        this.updateSlider();
-
+      } else {
         let lineSelect = this.line.select("path").datum(this.plottingData);
 
         lineSelect.transition().duration(750)
@@ -412,7 +398,7 @@
 
         //Update all circles under the clipping group
         let scatterSelect = this.dot.select('g').selectAll("circle").data(this.plottingData);
-        
+
         scatterSelect.transition()
           .duration(750)
           .attr("cx", function(d) {
@@ -481,34 +467,20 @@
       }
     }
 
-      updateSlider(){
+    updateSlider(){
 
-        let that = this;
-        let selectorSelect = this.selector
-          .attr("clip-path", "url(#clip2)")
-          .selectAll('circle')
-          .data([this.selectedDate]);
-          /// TODO: FIGURE OUT WHY THE SELECTOR ISNT TRANSITIONING PROPERLY.!
+      this.slider
+        .transition()
+        .duration(1000)
+        .attr('x1', this.currentTimeScale(this.selectedDate))
+        .attr('y1', 0)
+        .attr('x2', this.currentTimeScale(this.selectedDate))
+        .attr('y2', this.height)
+        .style("stroke", "grey")
+        .style("stroke-width", 2);
+    }
 
-        selectorSelect
-          .transition()
-          .duration(1250)
-          .attr('cx', function(d){
-              return that.currentTimeScale(that.selectedDate);
-            })
-            .attr('cy', function(d){
-              return that.height;
-            })
-          .attr('r',6)
-          .attr("stroke", "white")
-          .attr("stroke-width", "2px")
-          .style("fill", 'red');
 
-        selectorSelect.exit().remove()
-
-      }
-
-    
 
      filterDataToQuery(query,allData) {
         let returnData = [];
@@ -525,7 +497,7 @@
         return returnData;
      };
 
-  
+
      bindDateToData(data,startDate){
         let returnData = [];
         let currentDate = new Date(startDate);
@@ -548,7 +520,7 @@
       this.plottingData = this.filterDataToQuery(dates, this.allData);
       this.currentDates = dates;
       this.selectedDate = dates[0];
-      
+
       this.averageData = this.selectAverage(dates);
       this.update();
     }

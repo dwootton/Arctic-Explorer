@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>Arctic Explorer - Dylan Wootton and Ethan Ransom</title>
 
-    
+
     <script src="https://d3js.org/d3.v5.js"></script>
     <script src="https://d3js.org/d3-hexbin.v0.2.min.js"></script>
 
@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.9.0/d3-legend.js"></script>
     <script src="https://d3js.org/d3-polygon.v1.min.js"></script>
-      <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script> 
+      <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script>
 <!--- Bootstrap --->
       <!-- Latest compiled and minified CSS -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +28,7 @@
 
 <!-- Latest compiled JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<link rel="stylesheet" type="text/css" href="/styles/styles.css"">
+<link rel="stylesheet" type="text/css" href="/styles/styles.css">
 
     <!-- <link href="https://fonts.googleapis.com/css?family=Arvo" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> -->
@@ -78,17 +78,8 @@
         <div id="page-content-wrapper">
             <div class="container-fluid" id = "container">
                 <header class="row span12">
-                    <p class="text-center">By Ethan Ransom and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
-                    <!---
-                    <img src='/assets/logo.png' height='100' width='213'> 
-                    <p class="info">By Ethan Ransom and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
-                    <text id="currentMode"> </text>
-                    <label class="switch" class="float-xl-left">
+                    <p class="text-center">By <a href="https://github.com/schnauzer/">Ethan Ransom</a> and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
 
-                      <input type="checkbox" id="modeSwitch"checked>
-                      <span class="slider"></span>
-                    </label>
-                    --->
                 </header>
 
                 <main class="row" class = "pagination-centered">
@@ -109,8 +100,8 @@
                                 <button type="button" class="btn btn-primary btn-sm" id="clear">
                                     Clear Filter
                                 </button>
-                                <button type="button" class="btn btn-primary btn-sm" id="preset-sept">Traditional Yearly Minimum (Sept)</button>
-                                <button type="button" class="btn btn-primary btn-sm" id="preset-march">Traditional Yearly Maxiumum (March)</button>
+                                <button type="button" class="btn btn-primary btn-sm" id="preset-sept">Historical Yearly Minimum (Sept)</button>
+                                <button type="button" class="btn btn-primary btn-sm" id="preset-march">Historical Yearly Maxiumum (March)</button>
                             </p>
                             <table></table>
                         </div>
@@ -147,16 +138,12 @@ async function init() {
 
     let heatmap = new Heatmap(data, () => {}, currentChart);
 
-    icemap(heatmap);
-
-    
-
-
-    
+    icemap(heatmap); 
 	
 }
 init();
 
+</script>
 
 
 </script> 
