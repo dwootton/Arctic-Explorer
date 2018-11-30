@@ -282,10 +282,6 @@ function drawLineHeatMap(myData){
     let pathGroup = d3.select('#lineMap').select('svg').append('g')
         .attr("transform", "translate(" + margin.left/2 + "," + margin.top + ")");
 
-        //pathGroup.attr('transform','translate(' + margin.left/2 +$('#lineMap').scrollLeft() +',' + margin.top+')');
-
-//        var scrollLeft = $(window).scrollLeft() ;
-//var scrollTop = $(window).scrollTop() ;
     let pathScale = d3.scaleLinear()
         .domain([0, 1])
         .range([0, allData.length*rectHeight]);
@@ -340,8 +336,8 @@ function drawLineHeatMap(myData){
 
     // Currently data is not grouped by point. Group by point and then visualize array as heatmap
     
-    
-    let xScaleWidth = query.length*rectWidth;//(rectWidth+15);
+
+    let xScaleWidth = query.length*(rectWidth);
     console.log(xScaleWidth);
     if(xScaleWidth < 200){
         xScaleWidth = 200;

@@ -158,7 +158,7 @@ class Heatmap {
         }
         this.currentQuery = dates;
         this.currentChart.selectData(dates);
-        drawLineHeatMap();
+        //drawLineHeatMap();
 
     }
 }

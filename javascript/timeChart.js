@@ -173,8 +173,14 @@
 
         that.zoomWindow.call(zoom);
 
+        console.log("HERE")
+        console.log(that.currentDates);
+        let selectedIndex = that.currentDates.findIndex(d => {d.getTime()===that.selectedDate.getTime()});
+        console.log(selectedIndex)
+        console.log(that.currentDates.length);
 
         that.update();
+        
 
         /*
         let chart = svg
