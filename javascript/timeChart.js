@@ -11,9 +11,9 @@
      constructor(data, window){
         this.map = window;
         this.first = true;
-        this.margin = {top: 20, right: 30, bottom: 100, left: 50};
-        let fullWidth = 800;
-        let fullHeight = 400;
+        this.margin = {top: 20, right: 30, bottom: 50, left: 50};
+        let fullWidth = 735;
+        let fullHeight = 300;
 
         this.width = fullWidth - this.margin.left - this.margin.right;
         this.height = fullHeight - this.margin.top - this.margin.bottom;
@@ -149,7 +149,7 @@
 
         // optinos for d3.js 'hiding average'
          ref.svg.append("text")
-            .attr("x", ref.width-75)             
+            .attr("x", ref.width-100)             
             .attr("y", ref.margin.top+15)    
             .attr("class", "legend")
             .style("fill", "orange")         
@@ -161,7 +161,7 @@
               // Hide or show the elements
               ref.avgLine.transition(500).style("opacity", newOpacity);
             })
-            .text("Show Average Line");
+            .text("Toggle Average Line");
 
         that.div = d3.select("body").append("div")   
             .attr("class", "tooltip")               

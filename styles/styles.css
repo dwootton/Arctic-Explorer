@@ -8,18 +8,38 @@ line {
     stroke-linecap: round;
     opacity: 0.7;
 }
+
+.info {
+  text-align: center;
+  display: inline-block;
+}
+
+#website {
+  padding-left:20px;
+}
+.hidden {
+  display: none;
+}
+.shown {
+  display: block;
+}
+
+#currentMode {
+  font-size: 24px;
+}
+
 #lineMap {
         height: 300px;
-        width: 800px;
+        width: 705px;
         border:1px dashed #999;
         overflow-y: scroll;
-        overflow-x: scroll;
+        overflow-x: scroll; 
         background:  whitesmoke
       }
 
 
     /* Sliders CSS*/
-    .switch {
+.switch {
   position: relative;
   display: inline-block;
   width: 200px;
@@ -70,49 +90,8 @@ input:checked + .slider:before {
   -ms-transform: translateX(130px);
   transform: translateX(130px);
 }
+/* End Slider code obtained from: https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_switch */
 
-/*
-.hexagon path {
-  -webkit-transition: fill 2000ms linear;
-  transition: fill 2000ms linear;
-}
-
-#container {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    flex-direction: column;
-    display: flex;
-}
-
-
-header {
-    height: 20vh;
-}
-
-main {
-    height: 60vh;
-    display: flex;
-}
-
-footer {
-    height: 20vh;
-}
-
-#map {
-    width: 50vw;
-}
-/*
-#aggregate {
-
-    width: 50vw;
-}
-
-#timeseries {
-    height: 20%;
-}
-*/
 /* Style the lines by removing the fill and applying a stroke */
 .line {
     fill: none;
@@ -130,16 +109,15 @@ footer {
 }
 
 .selectedNav {
-  fill: #f00;
-}
-.selectedNavGroup{
-  background: "yellow";
-
-  
+  fill: #F5B000;
 }
 
+.navCircle {
+  stroke: gray;
+  stroke-width: 1px;
+}
 .selectedNavGroup .navCircle {
-    fill: #f00;
+    fill: #F5B000;
 }    
 text {
     font-family:"arial";
@@ -171,11 +149,12 @@ div.HMtooltip {
   pointer-events: none;
 }
 
-
+/*
 #chart {
     margin: 20px;
     padding: 5px;
 }
+*/
 
 /* CONTENT */
 

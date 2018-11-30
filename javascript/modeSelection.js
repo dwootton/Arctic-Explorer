@@ -1,5 +1,13 @@
-
+let first = true;
 function update(){
+    /*
+    if(first){
+        d3.select('#chart').transition().duration(500).attr('class','shown');
+        d3.select('div #lineMap').transition().duration(500).attr('class','hidden');
+        first = false;
+        return;
+    }
+    */
 	console.log("Here!")
 
 	let status = document.getElementById("modeSwitch").checked; // False => Explorer, True => Navigator
@@ -11,20 +19,23 @@ function update(){
 
     	modeText
     		.text('Navigator');
-    	showMapNavLine();
-    	d3.select('#chart').selectAll('svg').attr('height',0).attr('opacity',0);
-    	d3.select('div #lineMap').attr('display','block');
-    	d3.select('div #lineMap').select('svg').attr('display','block');
+    	changeMapNavLine(1);
+    	d3.select('#chart').attr('class','hidden');
+        //.selectAll('svg').attr('height',0).attr('opacity',0);
+        d3.select('div #lineMap').transition().duration(500).attr('class','shown');
+        d3.select('div #lineMap').transition().duration(500).attr('display','block').attr('height',300).attr('overflow-y','scroll').attr('overflow-x','scroll');
+    	d3.select('div #lineMap').select('svg').style('display','block');
 
     } else { // Explorer Mode
     	//modeButton.selectAll().remove();
-
     	modeText
-    		.text('Explorer');
-    	hideMapNavLine();
-    	 d3.select('#chart').selectAll('svg').attr('height',400).attr('opacity',1);
-    	 d3.select('div #lineMap').attr('display','none');
-    	 d3.select('div #lineMap').select('svg').attr('display','none');
+    		.text('Global Exploration');
+    	changeMapNavLine(0);
+    	 d3.select('#chart').transition().duration(500).attr('class','shown');
+         //.selectAll('svg').attr('height',400).attr('opacity',1);
+    	 d3.select('div #lineMap').transition().duration(500).attr('class','hidden');
+         //.attr('height',0).attr('overflow','hidden');
+    	 //d3.select('div #lineMap').select('svg').style('display','none');
 
     }
     
@@ -34,6 +45,8 @@ function modeSelection(){
 	let button = d3.select('#modeSwitch');
 	console.log(button);
 	button.on('change', update);
+    button.attr('checked','false');
+    $('#modeSwitch').trigger('click');
 }
 
 

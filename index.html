@@ -34,6 +34,42 @@
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> -->
 </head>
 
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!---
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button> --->
+
+
+  <img src='/assets/logo.png' height='40' width='325'> <!-- Ratio is 2.13 px width to 1 px height -->
+                    
+                    
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+      </li>
+
+      <li class="nav-item active" id = "website">
+        <a class="nav-link" href="demo.html">Demo Link</a>
+      </li>
+      
+      <li class="nav-item">
+      </li>
+    </ul>
+    <ul>
+        <text id="currentMode" class="align-middle"> </text>
+                    <label class="switch" class="float-xl-left">
+
+                      <input type="checkbox" id="modeSwitch"checked>
+                      <span class="slider"></span>
+                    </label>
+
+    </ul>
+    
+  </div>
+</nav>
+
 <body>
     <div id="wrapper">
         <div id="sidebar-wrapper" class="toggled">
@@ -42,19 +78,22 @@
         <div id="page-content-wrapper">
             <div class="container-fluid" id = "container">
                 <header class="row span12">
-                    <img src='/assets/logo.png' height='100' width='213'> <!-- Ratio is 2.13 px width to 1 px height -->
-                    <p class="info">Ethan Ransom and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
+                    <p class="text-center">By Ethan Ransom and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
+                    <!---
+                    <img src='/assets/logo.png' height='100' width='213'> 
+                    <p class="info">By Ethan Ransom and <a href="http://www.dylanwootton.com">Dylan Wootton</a></p>
                     <text id="currentMode"> </text>
-                    <label class="switch">
+                    <label class="switch" class="float-xl-left">
 
                       <input type="checkbox" id="modeSwitch"checked>
                       <span class="slider"></span>
                     </label>
+                    --->
                 </header>
 
-                <main class="row">
+                <main class="row" class = "pagination-centered">
                     <section id="map" class="col-md-auto">
-                        <svg width="500" height="550"></svg>
+                        <svg width="500" height="565"></svg>
                     </section>
 
                     <section class="col col-lg-2">
@@ -100,8 +139,6 @@
 
 <script>
 
-
-
 async function init() {
     let data =  d3.json("data/totalConcentration.json");
     //let timeChart = new TimeChart(data,window);
@@ -111,16 +148,24 @@ async function init() {
     let heatmap = new Heatmap(data, () => {}, currentChart);
 
     icemap(heatmap);
-    modeSelection();
+
+    
+
 
     
 	
 }
 init();
 
+
+
 </script> 
 
-
+<script>
+    
+    //$(document).ready()
+    //d3.select('#modeSwitch').dispatch("change");
+</script>
 
 </body>
 </html>

@@ -48,7 +48,6 @@ async function icemap(currentHeatMap) {
     // Bind data and create one path per GeoJSON feature
     let geojson = topojson.feature(world, world.objects.countries)
 
-
     let countries = svg.selectAll("path")
         .data(geojson.features)
         .enter()
@@ -122,7 +121,7 @@ async function icemap(currentHeatMap) {
             return {
                 'x':element.x,
                 'y':element.y,
-                'val': 1.8// 1.8 was chosen after experimention to best determine the color that fits in to the hole
+                'val': 2.2// 1.8 was chosen after experimention to best determine the color that fits in to the hole
             }
         });
 
@@ -210,16 +209,19 @@ async function icemap(currentHeatMap) {
         .attr('id','highlighter')
         .attr('cx',-10)
         .attr('cy',-10)
-        .attr('r',20)
-        .attr('fill', 'gold')
+        .attr('r',10)
+        .attr('fill-opacity', 0.1)
+        .attr('stroke-width', 2)
+        .attr('stroke', 'gold');
     drawSpline(svg, bins)
+    modeSelection();
 }
 
 /* Used to fill the hole in the ice by creating a square patch*/
         function fixHoleInIce(){
             let returnData =[];
-            for(let xIndex = 370.0; xIndex <435.0; xIndex+=2){
-                for(let yIndex = 295; yIndex <360; yIndex+=2){
+            for(let xIndex = 255.0; xIndex <315.0; xIndex+=2){
+                for(let yIndex = 250; yIndex <315; yIndex+=2){
                     let pt = {
                         x:xIndex,
                         y:yIndex,
@@ -262,7 +264,7 @@ let div = d3.select("body").append("div")
 let heatMapSVG;
 function drawLineHeatMap(myData){
     let allData = jQuery.extend(true, [], myData);
-    d3.select('#lineMap').attr('height', 300).attr('width',800);
+    d3.select('#lineMap').attr('height', 300).attr('width',650);
 
 
     let width = 3500;
@@ -278,7 +280,12 @@ function drawLineHeatMap(myData){
     heatMapSVG = svg;
 
     let pathGroup = d3.select('#lineMap').select('svg').append('g')
-        .attr("transform", "translate(" + margin.left/3 + "," + margin.top + ")");
+        .attr("transform", "translate(" + margin.left/2 + "," + margin.top + ")");
+
+        //pathGroup.attr('transform','translate(' + margin.left/2 +$('#lineMap').scrollLeft() +',' + margin.top+')');
+
+//        var scrollLeft = $(window).scrollLeft() ;
+//var scrollTop = $(window).scrollTop() ;
     let pathScale = d3.scaleLinear()
         .domain([0, 1])
         .range([0, allData.length*rectHeight]);
@@ -288,7 +295,7 @@ function drawLineHeatMap(myData){
         .attr('height', function(d){
             return pathScale(1);
         })
-        .attr('x',5)
+        .attr('x',12)
         .attr('fill', 'steelblue');
 
     let pathGroups = pathGroup.selectAll('circle')
@@ -298,16 +305,15 @@ function drawLineHeatMap(myData){
 
     let newPathGroups = pathGroups.enter().append('g')
         .attr('transform', function(d){
-            return 'translate(' + 5+','+pathScale(d)+')';
+            return 'translate(' + 12+','+pathScale(d)+')';
         });
 
     newPathGroups
         .append('circle')
         .attr('r', 10)
         .attr('fill',function(d,i){
-            console.log(i, currentSelectedCircle);
             if(currentSelectedCircle === i){
-                return 'red';
+                return '#F5B000';
             } 
             return 'white'});
 
@@ -316,7 +322,7 @@ function drawLineHeatMap(myData){
             return i+1;
         })
         .attr('x', function(d,i){
-            if(i > 9){
+            if(i > 8){
                 return -8.5;
             }
             return -4})
@@ -324,21 +330,19 @@ function drawLineHeatMap(myData){
         .attr('fill','black');
 
     for(let i = 0; i < allData.length; i++){
-        if(allData[i] === undefined){
-            console.log(allData,i);
-        } else {
+        if(allData[i] !== undefined){
             allData[i].val = bindDateAndPointToData(allData[i], new Date(1990,0),i);
-        }
+        } 
     }
-    console.log(heatmap);
     let query = heatmap.getCurrentQuery();
     let selectedData = filterDataToQuery(query,allData);
     //let groupedSelectedData = groupData(query,selectedData);
 
     // Currently data is not grouped by point. Group by point and then visualize array as heatmap
     
-
-    let xScaleWidth = query.length*rectWidth;
+    
+    let xScaleWidth = query.length*rectWidth;//(rectWidth+15);
+    console.log(xScaleWidth);
     if(xScaleWidth < 200){
         xScaleWidth = 200;
     }
@@ -379,24 +383,26 @@ function drawLineHeatMap(myData){
             return colorScale(d.data);
         })
         .on("mouseover", function(d) {
+               changeMapNavLine(.2)
                div.transition()
                  .duration(600)
                  .style("opacity", .7);
                div.html(monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
                  .style("top", d3.event.pageY - 70 + "px")
                  .style("left", d3.event.pageX - 30 + "px");
-                 console.log(d.point, navCoordinates);
                  let currentCoordinate = navCoordinates[d.point]
 
                 d3.select('#highlighter')
-                .transition().duration(400).attr('cx',currentCoordinate[0]).attr('cy',currentCoordinate[1]);
+                .transition().duration(100).attr('cx',currentCoordinate[0]).attr('cy',currentCoordinate[1]);
                 })
              .on("mouseout", function(d) {
+                changeMapNavLine(0.9)
                div.transition()
                  .duration(300)
                  .style("opacity", 0);
                d3.select('#highlighter').transition().duration(1000).attr('cx',-10).attr('cy',-10);
                })
+
              .on("click", function(d){
                 let monthsSinceStart = d.date.getMonth() + d.date.getYear()*12;
                 let startDate = new Date(1990,0);            
@@ -442,6 +448,9 @@ function drawLineHeatMap(myData){
         .orient("top");
 
     */
+
+    appendLabels(svg);
+
     //Set up Append Rects 
     if (d3.event) {
         d3.event.preventDefault();
@@ -449,6 +458,29 @@ function drawLineHeatMap(myData){
       }
 
 }
+function appendLabels(svg){
+        let height = 300;
+        let width = 800;
+        let margin = {
+            top:20,
+            left:20
+        }
+        svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", -45)
+                .attr("x",0 - ((height- margin.top)/ 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Distance along path");
+
+            // Add X Label
+        svg.append("text")
+                .attr("y", -35)
+                .attr("x", ((width+margin.left)/2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Date");
+    }
 
 function groupData(query,selectedData){
     let counter = 0;
@@ -499,18 +531,16 @@ function filterDataToQuery(query,allData) {
     return returnData;
 };
 
-function hideMapNavLine(){
-    splineSVG.transition().duration(500).attr('opacity',0);
+function changeMapNavLine(opacity){
+    splineSVG.transition().duration(500).attr('opacity',opacity);
 }
 
-function showMapNavLine(){
-    splineSVG.transition().duration(500).attr('opacity',1);
 
-}
 
 
 /* New Line Creation for Line Spline*/
 function drawSpline(svg, bins){
+
 
     let width = parseInt(svg.attr("width"));
     let height = parseInt(svg.attr("height"));
@@ -555,9 +585,10 @@ function drawSpline(svg, bins){
     vis.node().focus();
 
     function redraw() {
+        console.log(points);
       vis.selectAll("path").datum(points).attr("d", line).attr('id','navLine');
+
       pointDistances = calculatePointDistances(points);
-      console.log(pointDistances);
 
 
       let groups = vis.selectAll("g").data(points);
@@ -580,7 +611,7 @@ function drawSpline(svg, bins){
         .append('text')
         .attr('y', +5)
         .attr('x', function(d,i){
-            if(i < 10){
+            if(i < 9){
                 return -4;
             } else {
                 return -8.5;
@@ -674,13 +705,13 @@ function drawSpline(svg, bins){
       }
       return closestElements;
     }
+
     function scalePointDistances(distances, totalLength){
         let scaledDistances = [];
         for(let i = 0; i < distances.length; i++){
             scaledDistances.push(distances[i]/totalLength);
         }
         return scaledDistances;
-
     }
 
     function findCoordinatesAlongPath(path){
