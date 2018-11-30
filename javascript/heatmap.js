@@ -21,7 +21,8 @@ class Heatmap {
             this.years.push(i);
         }
 
-        this.mousedown = false;
+        this.mousedown = false; // for headers
+        this.cellMousedown = false; // for cells	
         // select the last 20 septembers on page load
         this.selectedMonths = ["Sep"];
         this.selectedYears = this.years.filter(y => y >= 1997);
@@ -47,8 +48,9 @@ class Heatmap {
         this.psidata = psidata.psijson;
 
         d3.select("body").on("mouseup", () => {
-            if (this.mousedown === true) {
+            if (this.mousedown === true || this.cellMousedown === true) {
                 this.mousedown = false;
+                this.cellMousedown = false;
                 this.render(); // we actually might not need this render
                 filterCallback(this.selectedMonths, this.selectedYears);
             }
@@ -62,21 +64,19 @@ class Heatmap {
     }
 
     render() {
-        let data = this.psidata.slice(); // shallow copy
-
-        let extent = d3.extent(data);
+        let extent = d3.extent(this.psidata);
         let scale = d3.scaleSequential(d3.interpolateBlues)
             .domain([extent[1], extent[0]]);
         let greyscale = d3.scaleSequential(d3.interpolateGreys)
             .domain([extent[1], extent[0]]);
 
         let celldata = months.map((m, n) => {
-            let slice = data.splice(0, 12);
             return {
                 name: m,
                 selected: this.selectedMonths.includes(m),
                 years: this.years.map((y, i) => ({
                     year: y,
+                    month: m,
                     selected: this.selectedYears.includes(y) && this.selectedMonths.includes(m),
                     psi: this.psidata[i*12 + n],
                 })),
@@ -139,6 +139,20 @@ class Heatmap {
             .append("td")
             .attr("class", "year")
             .merge(cells)
+            .on("mousedown", d => {
+                this.cellMousedown = true;
+                this.selectedMonths = [d.month];
+                this.selectedYears = [d.year];
+                this.render();
+            })
+            .on("mouseover", d => {
+                if (this.cellMousedown === true) {
+                    // range from this.selectedMonths[0] to d.month
+                    this.selectedMonths.push(d.month);
+                    this.selectedYears.push(d.year);
+                    this.render();
+                }
+            })
             .style("background-color", d => hasSelection && !d.selected ? greyscale(d.psi) : scale(d.psi));
 
         let dates = [];
