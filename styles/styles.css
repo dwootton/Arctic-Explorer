@@ -80,12 +80,12 @@ footer {
 .selectedNavGroup{
   background: "yellow";
 
-  
+
 }
 
 .selectedNavGroup .navCircle {
     fill: #f00;
-}    
+}
 text {
     font-family:"arial";
 }
@@ -129,6 +129,10 @@ div.HMtooltip {
     stroke-width: .5px;
     stroke-opacity: .2;
     pointer-events: none;
+}
+
+#heatmap-controls button {
+    margin-right: 5px;
 }
 
 #heatmap {
