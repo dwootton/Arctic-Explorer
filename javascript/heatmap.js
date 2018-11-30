@@ -2,6 +2,11 @@ const months = ["Jan", "Feb", "Mar", "Apr",
   "May", "Jun", "Jul", "Aug", 
   "Sep", "Oct", "Nov", "Dec"];
 
+const dateConverter = {
+    "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4,"Jun": 5,
+    "Jul": 6,"Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
+};
+
 class Heatmap {
     constructor(psidata, filterCallback, currentChart) {
         this.currentChart = currentChart;
@@ -23,6 +28,7 @@ class Heatmap {
 
         this.mousedown = false; // for headers
         this.cellMousedown = false; // for cells	
+        this.cellSelectionStart = null;
         // select the last 20 septembers on page load
         this.selectedMonths = ["Sep"];
         this.selectedYears = this.years.filter(y => y >= 1997);
@@ -32,17 +38,20 @@ class Heatmap {
             this.selectedMonths = months;
             this.selectedYears = this.years;
             this.render();
+            this.flushDateChanges();
         });
 
         d3.select("#preset-sept").on("click", () => {
             this.selectedMonths = ["Sep"];
             this.selectedYears = this.years;
             this.render();
+            this.flushDateChanges();
         });
         d3.select("#preset-march").on("click", () => {
             this.selectedMonths = ["Mar"];
             this.selectedYears = this.years;
             this.render();
+            this.flushDateChanges();
         });
 
         this.psidata = psidata.psijson;
@@ -51,12 +60,14 @@ class Heatmap {
             if (this.mousedown === true || this.cellMousedown === true) {
                 this.mousedown = false;
                 this.cellMousedown = false;
-                this.render(); // we actually might not need this render
+                // this.render(); // we actually might not need this render
+                this.flushDateChanges();
                 filterCallback(this.selectedMonths, this.selectedYears);
             }
         });
 
         this.render();
+        this.flushDateChanges();
     }
 
     getCurrentQuery() {
@@ -100,6 +111,7 @@ class Heatmap {
             })
             .on("mouseover", d => {
                 if (this.mousedown === true) {
+                    d3.event.preventDefault();
                     this.selectedYears.push(d);
                     this.render();
                 }
@@ -143,25 +155,22 @@ class Heatmap {
                 this.cellMousedown = true;
                 this.selectedMonths = [d.month];
                 this.selectedYears = [d.year];
+                this.cellSelectionStart = d;
                 this.render();
             })
             .on("mouseover", d => {
                 if (this.cellMousedown === true) {
                     // range from this.selectedMonths[0] to d.month
-                    this.selectedMonths.push(d.month);
-                    this.selectedYears.push(d.year);
+                    this.selectedMonths = this.setMonthSelection(this.cellSelectionStart.month, d.month);
+                    this.selectedYears = this.setYearSelection(this.cellSelectionStart.year, d.year);
                     this.render();
                 }
             })
             .style("background-color", d => hasSelection && !d.selected ? greyscale(d.psi) : scale(d.psi));
+    }
 
+    flushDateChanges() {
         let dates = [];
-
-        let dateConverter = {
-            "Jan": 0, "Feb": 1, "Mar": 2, "Apr": 3, "May": 4,"Jun": 5,
-            "Jul": 6,"Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
-        };
-
         for(let yearCounter = 0; yearCounter < this.selectedYears.length; yearCounter++){
             let currentYear = this.selectedYears[yearCounter];
 
@@ -172,7 +181,32 @@ class Heatmap {
         }
         this.currentQuery = dates;
         this.currentChart.selectData(dates);
-        //drawLineHeatMap();
+    }
 
+    setYearSelection(year1, year2) {
+        let start = Math.min(year1, year2);
+        let end = Math.max(year1, year2);
+
+        let years = [];
+        for (let i = start; i <= end; i++) {
+            years.push(i);
+        }
+
+        return years;
+    }
+
+    setMonthSelection(month1, month2) {
+        let monthNum1 = dateConverter[month1];
+        let monthNum2 = dateConverter[month2];
+
+        let start = Math.min(monthNum1, monthNum2);
+        let end = Math.max(monthNum1, monthNum2);
+
+        let selection = [];
+        for (let i = start; i <= end; i++) {
+            selection.push(months[i]);
+        }
+
+        return selection;
     }
 }
