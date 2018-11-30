@@ -146,6 +146,7 @@
             .attr('cx', function(d){
               return new_xScale(d);
             })
+          ref.updateSliderZoom();
         }
 
         // optinos for d3.js 'hiding average'
@@ -169,7 +170,7 @@
             .attr("class", "tooltip")
             .style("opacity", 0);
 
-        var zoom = d3.zoom().scaleExtent([0.25, 4]).on('zoom', zoomed);
+        var zoom = d3.zoom().scaleExtent([1, 1]).on('zoom', zoomed);
 
         that.zoomWindow.call(zoom);
 
@@ -481,13 +482,23 @@
 
       this.slider
         .transition()
-        .duration(1000)
+        .duration(500)
         .attr('x1', this.currentTimeScale(this.selectedDate))
         .attr('y1', 0)
         .attr('x2', this.currentTimeScale(this.selectedDate))
         .attr('y2', this.height)
         .style("stroke", "grey")
         .style("stroke-width", 2);
+    }
+    updateSliderZoom(){
+      this.slider
+        .attr('x1', this.currentTimeScale(this.selectedDate))
+        .attr('y1', 0)
+        .attr('x2', this.currentTimeScale(this.selectedDate))
+        .attr('y2', this.height)
+        .style("stroke", "grey")
+        .style("stroke-width", 2);
+
     }
 
 
