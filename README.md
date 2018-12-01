@@ -4,7 +4,7 @@ This is the repo for Ethan and Dylan's CS 5660 final project.
 
 ## Repository Structure
 
- * *`index.html* - The project entry point.
+ * *`index.html`* - The project entry point.
  * *`javascript/`* - The code
  * *`data/`* - The final data loaded by the project
  * *`Data Processing Scripts/`* - Scripts used in converting the data into a format usable on the web
