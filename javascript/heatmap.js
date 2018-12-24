@@ -7,7 +7,7 @@ const dateConverter = {
     "Jul": 6,"Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10, "Dec": 11
 };
 
-class Heatmap {
+class TimeSelector {
     constructor(psidata, filterCallback, currentChart) {
         this.currentChart = currentChart;
         this.table = d3.select("#heatmap table");

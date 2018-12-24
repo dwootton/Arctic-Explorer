@@ -120,7 +120,9 @@
     </div>
 
 <script src="javascript/heatmap.js"></script>
-<script src="javascript/icemap.js"></script>
+<script src="javascript/LineHeatMap.js"></script>
+<script src="javascript/mapPath.js"></script>
+<script src="javascript/icemapRefactored.js"></script>
 <script src="javascript/timeChart.js"></script>
 <script src="javascript/modeSelection.js"></script> 
 
@@ -139,14 +141,22 @@
 <script>
 
 async function init() {
+    let mapPath;
+    let icemap;
     let data =  d3.json("data/totalConcentration.json");
+    let mapData = (await d3.json("data/lat_long_data.json")).positions;
+    let worldJSON = await d3.json("data/clipped-simplified.json");
+
     //let timeChart = new TimeChart(data,window);
-    let currentChart = new TimeChart(data,window);
+    let currentChart = new TimeChart(data,icemap);
     data = await data;
 
-    let heatmap = new Heatmap(data, () => {}, currentChart);
+    let timeSelector = new TimeSelector(data, () => {}, currentChart);
+    console.log(timeSelector);
+    let lineHeatMap;
 
-    icemap(heatmap); 
+    
+    icemap = new IceMapRF(timeSelector, mapData, worldJSON, mapPath,lineHeatMap); 
 	
 }
 init();
@@ -154,12 +164,13 @@ init();
 </script>
 
 <script>
+    
 setTimeout(
   function() 
   {
     d3.select('#overlay').transition().duration(2000).attr('opacity',0);
     d3.select('#overlay').transition().remove();
-  }, 4000);
+  }, 10); 
 </script> 
 
 

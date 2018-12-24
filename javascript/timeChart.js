@@ -8,8 +8,8 @@
     /**
      *
      */
-     constructor(data, window){
-        this.map = window;
+     constructor(data, map){
+        this.map = map;
         this.first = true;
         this.margin = {top: 20, right: 30, bottom: 50, left: 50};
         let fullWidth = 735;
@@ -235,6 +235,11 @@
    showChart(){
     this.svg.attr('height',this.height).attr('opacity',1);
    }
+
+   updateMap(newMap){
+      this.map = newMap;
+   }
+   
   calculateAverages(){
     let data = this.allData;
     let monthlyAverages = [];
@@ -385,7 +390,7 @@
                 let monthsSinceStart = element.date.getMonth() + element.date.getYear()*12;
                 that.selectedDate = element.date;
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
-                that.map.render(monthsSinceStart)
+                that.map.renderMap(monthsSinceStart)
                 that.updateSlider();
 
              });
@@ -465,7 +470,7 @@
                 monthsSinceStart -= that.startDate.getMonth() + that.startDate.getYear()*12;
                 that.selectedDate = element.date;
                 that.updateSlider();
-                that.map.render(monthsSinceStart)
+                that.map.renderMap(monthsSinceStart)
              });
 
         // Remove old
