@@ -10,6 +10,7 @@ const dateConverter = {
 class TimeSelector {
     constructor(psidata, filterCallback, currentChart) {
         this.currentChart = currentChart;
+        this.lineHeatMap = null;
         this.table = d3.select("#heatmap table");
         this.width = parseInt(this.table.attr("width"));
         this.height = parseInt(this.table.attr("height"));
@@ -68,6 +69,14 @@ class TimeSelector {
 
         this.render();
         this.flushDateChanges();
+    }
+
+    updateLineHeatMap(lineHeatMap){
+        this.lineHeatMap = lineHeatMap;
+    }
+
+    updateMapPath(mapPath){
+        this.mapPath = mapPath;
     }
 
     getCurrentQuery() {
@@ -147,6 +156,7 @@ class TimeSelector {
 
         let cells = rows.selectAll("td.year")
             .data(month => month.years)
+
         cells.enter()
             .append("td")
             .attr("class", "year")
@@ -179,8 +189,16 @@ class TimeSelector {
                 dates.push(new Date(currentYear, dateConverter[currentMonth]));
             }
         }
+        console.log(this.mapPath)
+
+        
+
         this.currentQuery = dates;
         this.currentChart.selectData(dates);
+        if(this.mapPath){
+            console.log("about to enter mouseup!")
+            this.mapPath.updateFromTimeChart();
+        }
     }
 
     setYearSelection(year1, year2) {

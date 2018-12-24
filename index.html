@@ -49,8 +49,6 @@
 
   <img src='assets/logo.png' height='40' width='325'> <!-- Ratio is 2.13 px width to 1 px height -->
                     
-                    
-
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
@@ -67,7 +65,7 @@
     </ul>
     <ul>
         <text id="currentMode" class="align-middle"> </text>
-                    <label class="switch" class="float-xl-left">
+                    <label class="switch nav-link" class="float-xl-left">
 
                       <input type="checkbox" id="modeSwitch"checked>
                       <span class="slider"></span>
@@ -91,27 +89,29 @@
                 </header>
 
                 <main class="row" class = "pagination-centered">
-                    <section id="map" class="col-md-auto">
+                    <section id="map" class="col-3">
                         <svg width="500" height="565"></svg>
                     </section>
 
-                    <section class="col col-lg-2">
-                        <div id="lineMap">
-                            <svg ></svg>
-                        </div>
+                    <section class="col col-lg-2" >
+                        <div id="plots"> 
+                            <div id="lineMap">
+                                <svg ></svg>
+                            </div>
 
-                        <section id="chart">
-                        </section>
+                            <section id="chart">
+                            </section>
 
-                        <div id="heatmap">
-                            <p id="heatmap-controls" class="flex-row d-flex">
-                                <button type="button" class="btn btn-primary btn-sm" id="clear">
-                                    Clear Filter
-                                </button>
-                                <button type="button" class="btn btn-primary btn-sm" id="preset-sept">Historical Yearly Minimum (Sept)</button>
-                                <button type="button" class="btn btn-primary btn-sm" id="preset-march">Historical Yearly Maxiumum (March)</button>
-                            </p>
+                            <div id="heatmap">
+                                <p id="heatmap-controls" class="flex-row d-flex">
+                                    <button type="button" class="btn btn-primary btn-sm" id="clear">
+                                        Clear Filter
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-sm" id="preset-sept">Historical Yearly Minimum (Sept)</button>
+                                    <button type="button" class="btn btn-primary btn-sm" id="preset-march">Historical Yearly Maxiumum (March)</button>
+                                </p>
                             <table></table>
+                            </div>
                         </div>
                     </section>
                 </main>
@@ -150,7 +150,6 @@ async function init() {
     //let timeChart = new TimeChart(data,window);
     let currentChart = new TimeChart(data,icemap);
     data = await data;
-
     let timeSelector = new TimeSelector(data, () => {}, currentChart);
     console.log(timeSelector);
     let lineHeatMap;

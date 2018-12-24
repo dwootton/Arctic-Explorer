@@ -60,12 +60,12 @@ line {
 }
 
 #lineMap {
-        height: 300px;
-        width: 705px;
+        height: 275px;
+        width: 950px;
         border:1px dashed #999;
         overflow-y: scroll;
         overflow-x: scroll;
-        background:  whitesmoke
+        background:  #DCDCDC;
       }
 
 
@@ -94,7 +94,13 @@ line {
   -webkit-transition: .4s;
   transition: .4s;
 }
-
+#container {
+  margin-left: 155px;
+  margin-right: 55px;
+}
+#plots{
+  margin-left:50px;
+}
 .slider:before {
   position: absolute;
   content: "";

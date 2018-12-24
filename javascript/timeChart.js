@@ -12,8 +12,8 @@
         this.map = map;
         this.first = true;
         this.margin = {top: 20, right: 30, bottom: 50, left: 50};
-        let fullWidth = 735;
-        let fullHeight = 300;
+        let fullWidth = 975;
+        let fullHeight = 275;
 
         this.width = fullWidth - this.margin.left - this.margin.right;
         this.height = fullHeight - this.margin.top - this.margin.bottom;
@@ -72,7 +72,7 @@
           .attr("width", that.width)
           .attr("height", that.height)
           .style("opacity", 1)
-          .style("fill", "whitesmoke");
+          .style("fill", "#DCDCDC");
 
         that.svg.append("g")
           .attr("class", "x axis ")
@@ -239,7 +239,7 @@
    updateMap(newMap){
       this.map = newMap;
    }
-   
+
   calculateAverages(){
     let data = this.allData;
     let monthlyAverages = [];

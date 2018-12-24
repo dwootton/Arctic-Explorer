@@ -3,7 +3,9 @@ class MapPath {
 		console.log(icemap.timeSelector)
 		lineHeatMap = new LineHeatMap(this, icemap);
 		this.lineHeatMap = lineHeatMap;
+
 		this.timeSelector = icemap.timeSelector;
+		this.timeSelector.updateMapPath(this);
 		this.projection = icemap.projection;
 		this.svg = icemap.svg;
 		this.icemap = icemap;
@@ -29,10 +31,11 @@ class MapPath {
 	      switch (d3.event.keyCode) {
 	        case 8: // backspace
 	        case 46: { // delete
-	          var i = points.indexOf(selected);
-	          points.splice(i, 1);
-	          selected = points.length ? points[i > 0 ? i - 1 : 0] : null;
+	          var i = this.pathPoints.indexOf(this.selected);
+	          this.pathPoints.splice(i, 1);
+	          this.selected = this.pathPoints.length ? this.pathPoints[i > 0 ? i - 1 : 0] : null;
 	          this.redraw();
+	          this.updateFromTimeChart();
 	          break;
 	        }
 	      }
@@ -50,10 +53,12 @@ class MapPath {
 	      this.dragged[1] = Math.max(0, Math.min(this.height, selectedNode[1]));
 	      this.redraw();
 	    }
+	    this.mousemove = mousemove;
 
 	    let mouseup = () => {
 	      if (!this.dragged) return;
 	      mousemove();
+	      console.log("In Mouseup!")
 	      this.dragged = null;
 
 	      // Grab the closest elements along line
@@ -63,9 +68,10 @@ class MapPath {
 	      let allData = this.grabDataAtPoints(closestElements);
 
 	      this.lineHeatMap.update(allData);
+	      this.timeSelector.updateLineHeatMap(this.lineHeatMap);
 	      //drawLineHeatMap(allData);
 	    }
-
+	    this.mouseup = mouseup;
 
 		this.spline = this.svg
 		    .on("mousedown", mousedown)
@@ -100,6 +106,13 @@ class MapPath {
 	        .on("keydown", keydown);
 
     	this.spline.node().focus();
+
+    	//let closestElements = this.getClosestElements() // Note: Undefined values in array corrrespond to all 0's
+
+	      // Grab other
+	    //let allData = this.grabDataAtPoints(closestElements);
+
+	    //this.lineHeatMap.update(allData);
 	}
 
 	/* Getters */
@@ -113,6 +126,20 @@ class MapPath {
 
     getSelectedCircle(){
     	return this.currentSelectedCircle;
+    }
+    updateFromTimeChart(){
+    	this.mousemove();
+    	console.log("In Time Chart Up[date!")
+	      this.dragged = null;
+
+	      // Grab the closest elements along line
+	      let closestElements = this.getClosestElements() // Note: Undefined values in array corrrespond to all 0's
+
+	      // Grab other
+	      let allData = this.grabDataAtPoints(closestElements);
+	      this.redraw();
+	      this.lineHeatMap.update(allData);
+
     }
 
 	redraw() {
@@ -281,7 +308,7 @@ class MapPath {
          let bins = this.icemap.getCurrentBins();
 
          // find the closest hexagon 
-         let closestHex = this.findClosestPoint(bins,navCoordinate,100); // After 100, report ocean
+         let closestHex = this.findClosestPoint(bins,navCoordinate,30); // After 100, report ocean
 
          // grab the closest element in the closest hexagon
          let closestPoint = this.findClosestPoint(closestHex, navCoordinate,50)

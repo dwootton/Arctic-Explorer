@@ -5,14 +5,14 @@ class LineHeatMap {
 		this.timeSelector = icemap.timeSelector;
 		
 		this.mapPath = mapPath;
-		this.visibleHeight = 300;
-		this.visibleWidth = 650;
+		this.visibleHeight = 275;
+		this.visibleWidth = 1000;
 		this.fullHeight = 1000;
 		this.fullWidth = 3500;
 
 		this.margin = { top: 50, right: 0, bottom: 100, left: 50 };
-		this.rectHeight = 10;
-		this.rectWidth = 10;
+		this.rectHeight = 16;
+		this.rectWidth = 16;
 		/* Appends Div for the tool tip*/
 		this.div = d3.select("body").append("div")
             .attr("class", "HMtooltip")
@@ -27,10 +27,12 @@ class LineHeatMap {
 	    this.svg = d3.select('#lineMap').select('svg')
 	                    .attr('width',this.fullWidth)
 	                    .attr('height',this.fullHeight)
-	                
+	    
+	               
 	}
 
 	update(data) {
+
 		this.heatMapData = jQuery.extend(true, [], data);
 
 		// Remove Old Heat Maps
@@ -67,11 +69,13 @@ class LineHeatMap {
     }
 
 	drawHeatMap(){
+
 		for(let i = 0; i < this.heatMapData.length; i++){
 	        if(this.heatMapData[i] !== undefined){
 	            this.heatMapData[i].val = this.bindDateAndPointToData(this.heatMapData[i], new Date(1990,0),i);
 	        } 
 	    }
+	    console.log(this.heatMapData)
 	    let query = this.timeSelector.getCurrentQuery();
 	    console.log(query)
 
@@ -80,12 +84,9 @@ class LineHeatMap {
     	let xScaleWidth = query.length*(this.rectWidth);
 	    console.log(xScaleWidth);
 
-	    //Set XScale Width to 200 to expand map if one a few datapoints are chosen
-	    if(xScaleWidth < 200) { xScaleWidth = 200; };
-
 	    //Set up xScale
-	    let xScale = d3.scaleTime()
-	            .domain(d3.extent(query))
+	    let xScale = d3.scaleLinear()
+	            .domain([0,query.length])
 	            .range([0, xScaleWidth]).nice();
 
 	    let yScale = (point) => {
@@ -97,7 +98,7 @@ class LineHeatMap {
 	        .domain([1, 0]);
 
 	    // Set Names for the Tool Tip
-	    let monthNames = ["Jan", "Feb", "Mar", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
+	    this.monthNames = ["Jan", "Feb", "Mar", "April", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
 
 	    let navCoordinates = this.mapPath.getNavCoordinates();
 
@@ -110,7 +111,8 @@ class LineHeatMap {
 	        .attr('width', this.rectWidth)
 	        .attr('height', this.rectHeight)
 	        .attr('x', function(d){
-	            return xScale(d.date);
+	        	let index = query.map(Number).indexOf(+d.date);
+	            return xScale(index);
 	        })
 	        .attr('y', function(d){
 	            return yScale(d.point);
@@ -126,7 +128,7 @@ class LineHeatMap {
                  this.div.transition()
                  	.duration(600)
                  	.style("opacity", .7);
-                 this.div.html(monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
+                 this.div.html(this.monthNames[d.date.getMonth()] +"</br>"+ d.date.getFullYear() + "</br>" + d.data.toFixed(2))
                  	.style("top", d3.event.pageY - 70 + "px")
                  	.style("left", d3.event.pageX - 30 + "px");
                  let currentCoordinate = navCoordinates[d.point]
@@ -154,7 +156,8 @@ class LineHeatMap {
 	        .attr('width', this.rectWidth)
 	        .attr('height', this.rectHeight)
 	        .attr('x', function(d){
-	            return xScale(d.date);
+	        	let index = query.map(Number).indexOf(+d.date);
+	            return xScale(index);
 	        })
 	        .attr('y', function(d){
 	            return yScale(d.point);
@@ -165,14 +168,33 @@ class LineHeatMap {
 	            }
 	            return colorScale(d.data);
 	        })
-	    let x_axis = d3.axisBottom(xScale).ticks((query.length/15+1));
 
-	    this.heatMapLayer.append("g")
+	    // 
+
+	    // TO DO: Make xScale 
+	    //let x_axis = d3.axisBottom(xScale).tickValues([]);
+	    let vals = this.heatMapLayer.append("g")
+	    	.selectAll("text")
+	    	.data(query)
+	    	.enter()
+	    	.append("text")
+	    		.attr('transform', (d,i)=> {
+	    			return "translate("+ (10+ i*(this.rectWidth)) + ","+ 5 +") rotate(270)";
+	    		})
+	    		.attr('font-size','0.50em')
+	    		.text((d)=>{
+	    			return this.monthNames[d.getMonth()] + " "+ d.getFullYear();
+	    		});
+	    		
+	    		console.log(vals);
+
+	    /*(this.heatMapLayer.append("g")
 	       .call(x_axis)
 	       .selectAll("text")
 	        .attr("y", -10)
 	        .attr("x", 0)
 	        .attr("dy", ".35em");
+			*/
 
 	    this.appendLabels();
 
@@ -199,6 +221,7 @@ class LineHeatMap {
                 .attr("dy", "1em")
                 .style("text-anchor", "middle")
                 .text("Date");
+
     }
 
 
