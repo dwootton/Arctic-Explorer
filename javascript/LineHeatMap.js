@@ -86,7 +86,7 @@ class LineHeatMap {
 
 	    //Set up xScale
 	    let xScale = d3.scaleLinear()
-	            .domain([0,query.length])
+	            .domain([0,query.length-1])
 	            .range([0, xScaleWidth]).nice();
 
 	    let yScale = (point) => {
@@ -179,7 +179,7 @@ class LineHeatMap {
 	    	.enter()
 	    	.append("text")
 	    		.attr('transform', (d,i)=> {
-	    			return "translate("+ (10+ i*(this.rectWidth)) + ","+ 5 +") rotate(270)";
+	    			return "translate("+ (10+xScale(i)) + ","+ (10) +") rotate(270)";
 	    		})
 	    		.attr('font-size','0.50em')
 	    		.text((d)=>{
@@ -210,15 +210,15 @@ class LineHeatMap {
                 .attr("transform", "rotate(-90)")
                 .attr("y", -45)
                 .attr("x",0 - ((this.visibleHeight - 20)/ 2))
-                .attr("dy", "1em")
+                .attr("dy", ".8em")
                 .style("text-anchor", "middle")
                 .text("Distance along path");
 
             // Add X Label
         this.heatMapLayer.append("text")
-                .attr("y", -35)
+                .attr("y", -45)
                 .attr("x", ((this.visibleWidth + 20)/2))
-                .attr("dy", "1em")
+                .attr("dy", ".8em")
                 .style("text-anchor", "middle")
                 .text("Date");
 
