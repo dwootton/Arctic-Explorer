@@ -72,6 +72,8 @@ class MapPath {
 	      //drawLineHeatMap(allData);
 	    }
 	    this.mouseup = mouseup;
+	    this.splinePath = this.svg
+		    .append('g');
 
 		this.spline = this.svg
 		    .on("mousedown", mousedown)
@@ -145,9 +147,9 @@ class MapPath {
 	redraw() {
 	    console.log("Your pathpoints are:", this.pathPoints);
 	    console.log(this.spline);
-	    this.spline.selectAll("path").remove();
+	    this.splinePath.selectAll("path").remove();
 	    /* Generate Path Line */
-	    let myLine = this.spline.append("path")
+	    let myLine = this.splinePath.append("path")
 	 	  	.datum(this.pathPoints)
 	 	  	.attr("class","line")
 	      	.attr("d", this.lineGenerator)
@@ -225,6 +227,7 @@ class MapPath {
     }
 
     changeMapNavLine(opacity){
+    	this.splinePath.transition().duration(500).attr('opacity',opacity);
 	    this.spline.transition().duration(500).attr('opacity',opacity);
 	}
 
@@ -342,14 +345,13 @@ class MapPath {
         }
 
         let min = Math.min(...distances);
-        if(min ===10000000){
+        if(min === 10000000){
             return undefined; // return ocean point
         }
         let closestIndex = distances.indexOf(min);
 
         return points[closestIndex];
     }
-
 
     findCoordinatesAlongPath(path){
         let totalLength = path.getTotalLength();
