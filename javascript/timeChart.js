@@ -12,7 +12,7 @@
         this.map = map;
         this.first = true;
         this.margin = {top: 20, right: 30, bottom: 50, left: 50};
-        let fullWidth = 900;
+        let fullWidth = 875;
         let fullHeight = 275;
 
         this.width = fullWidth - this.margin.left - this.margin.right;
