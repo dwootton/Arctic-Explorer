@@ -85,6 +85,15 @@ line {
   display: block;
 }
 
+.loadingBar {
+  animation: load 2.5s ;
+  animation-delay: 2s;
+
+}
+@keyframes load {
+  from {transform:scaleX(1);}
+  to {transform:scaleX(60);}
+}
 #currentMode {
   font-size: 24px;
 }
