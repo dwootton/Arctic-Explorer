@@ -282,7 +282,7 @@ div.HMtooltip {
 }
 
 #heatmap td, #heatmap th {
-  width: 32px;
+  width: 30px;
 }
 
 #heatmap .hasSelection {
