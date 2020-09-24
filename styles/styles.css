@@ -135,7 +135,7 @@ line {
 #analysis{
   flex:1;
   flex-direction: column;
-  margin-left:50px;
+  margin-left:16px;
 }
 .slider:before {
   position: absolute;
