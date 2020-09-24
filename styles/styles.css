@@ -86,13 +86,13 @@ line {
 }
 
 .loadingBar {
-  animation: load 2.5s ;
+  animation: load 1.75s ;
   animation-delay: 2s;
 
 }
 @keyframes load {
   from {transform:scaleX(1);}
-  to {transform:scaleX(60);}
+  to {transform:scaleX(52);}
 }
 #currentMode {
   font-size: 24px;
