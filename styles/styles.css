@@ -92,7 +92,7 @@ line {
 #lineMap {
   flex:1;
         height: 275px;
-        width: 950px;
+        width: 875px;
         border:1px dashed #999;
         overflow-y: scroll;
         overflow-x: scroll;
