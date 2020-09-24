@@ -6,6 +6,7 @@ class IceMapRF {
 
 		this.timeSelector = timeSelector;
 		this.timeSelector.currentChart.updateMap(this);
+		
 		this.svg = d3.select("#map svg");
 		this.width = parseInt(this.svg.attr("width"));
     	this.height = parseInt(this.svg.attr("height"));

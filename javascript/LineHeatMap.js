@@ -13,6 +13,7 @@ class LineHeatMap {
 		this.margin = { top: 50, right: 0, bottom: 100, left: 50 };
 		this.rectHeight = 16;
 		this.rectWidth = 16;
+
 		/* Appends Div for the tool tip*/
 		this.div = d3.select("body").append("div")
             .attr("class", "HMtooltip")
@@ -32,6 +33,7 @@ class LineHeatMap {
 	}
 
 	update(data) {
+		console.log(data);
 
 		this.heatMapData = jQuery.extend(true, [], data);
 
@@ -43,9 +45,7 @@ class LineHeatMap {
 
 	    this.drawPathLegend();
 
-	    this.drawHeatMap();
-	    
-	    
+	    this.drawHeatMap();    
 	}
 
 	bindDateAndPointToData(fullData,startDate,point){
@@ -168,8 +168,6 @@ class LineHeatMap {
 	            }
 	            return colorScale(d.data);
 	        })
-
-	    // 
 
 	    // TO DO: Make xScale 
 	    //let x_axis = d3.axisBottom(xScale).tickValues([]);
