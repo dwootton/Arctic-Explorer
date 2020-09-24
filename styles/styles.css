@@ -37,8 +37,25 @@ line {
 
 }
  @media (max-device-width : 900px){ 
-   .mobileShow { display: inline; font-size: large; margin-block-start: 64px; text-align: center;
+   .mobileShow { display:flex; font-size: large; margin-block-start: 64px;
+    top: 50%;
+    left: 50%;
+    text-anchor: middle;
+    text-align: center;
+    font-size: 42px
   }
+  .mobileOverlay{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    background-color:#DEE3E5;
+    opacity: 1;
+    z-index: 999;
+}
+
+
    #wrapper {
      display: none;
    }
