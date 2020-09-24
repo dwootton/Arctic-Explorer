@@ -126,8 +126,8 @@ line {
   transition: .4s;
 }
 #container {
-  margin-left: 155px;
-  margin-right: 55px;
+  margin-left: 24px;
+  margin-right: 24px;
   display:flex;
   flex-direction: column;
 }
