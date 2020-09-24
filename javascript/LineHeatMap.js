@@ -6,7 +6,7 @@ class LineHeatMap {
 		
 		this.mapPath = mapPath;
 		this.visibleHeight = 275;
-		this.visibleWidth = 1000;
+		this.visibleWidth = 875;
 		this.fullHeight = 1000;
 		this.fullWidth = 3500;
 
